@@ -17,6 +17,8 @@ class Sell(commands.Cog):
         self.add_to_inventory = AddToInventory()
         self.path_to_inv_images = Path(__file__).parent / "inventory_images"
         self.message = "Just landed!"
+        # This channel ID defines to what channel we will be sending
+        # posts of items we just added to our inventory. 
         self.sell_channel = 1076493112542765106
 
     @commands.command(name="sell")
@@ -33,6 +35,8 @@ class Sell(commands.Cog):
             None
         """
         # Check if the message was sent in the correct channel
+        # This channel should be available only for users we want them to
+        # have possibility to list items.
         if ctx.channel.id == 1061730004515430542:
             self.add_to_inventory.load_csv()
             self.add_to_inventory.convert_message(ctx.message.content)
@@ -60,6 +64,8 @@ class Sell(commands.Cog):
                 )
         else:
             # React to the message with a poop emoji if it was sent in the wrong channel
+            # Item won't be added to inventory nor attachments will be 
+            # downloaded.
             await ctx.message.add_reaction("💩")
 
 

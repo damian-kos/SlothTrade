@@ -124,11 +124,18 @@ class AddToInventory:
     def add(self):
         """
         Add a new item to the inventory.
-        """
 
+        This method generates a new unique ID for the item, assigns the values of
+        make, model, part, color, description, and price to instance variables,
+        and creates a new row with these values in the inventory DataFrame. The
+        DataFrame is then saved to the inventory.csv file, and a message is printed
+        to confirm the operation.
+
+        """
         # Generate the next unique ID
         try:
-            # Get the last item's ID in the DataFrame and add 1 to it
+            # Get the last item's ID in the DataFrame and add 1 to it,
+            # add leading zeros until its length is 5.
             self.new_id = str(int(self.data["id"].iloc[-1]) + 1).zfill(5)
         except IndexError:
             # If no item is found, set new_id to 00001

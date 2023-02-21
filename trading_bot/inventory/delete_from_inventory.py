@@ -49,7 +49,7 @@ class DeleteFromInventory:
         self.data = pd.read_csv(self.__path_to_file, dtype=str)
         return self.data
 
-    def get_id_from_message(self, discord_message):
+    def get_id_from_message(self, discord_message: str) -> str:
         """
         Parses the item ID from a given Discord message.
 
@@ -60,10 +60,11 @@ class DeleteFromInventory:
 
         Returns
         -------
-        None
+        str
+            a str contatining item_id
         """
         self.message_to_format = discord_message.split(" ")[1:]
-        self.id = self.message_to_format[0]
+        return self.message_to_format[0]
 
     def __save_to_csv(self):
         """
@@ -75,15 +76,18 @@ class DeleteFromInventory:
         """
         self.data.to_csv(self.__path_to_file, index=False)
 
-    def delete(self):
+    def delete(self, item_id: str):
         """
         Deletes an item from the inventory.csv file.
+
+        Args:
+            item_id (str): A item IDs to remove.
 
         Returns
         -------
         None
         """
-        row_to_delete = self.data.loc[self.data["id"] == self.id]
+        row_to_delete = self.data.loc[self.data["id"] == item_id]
         self.data = self.data.drop(row_to_delete.index)
         self.__save_to_csv()
 

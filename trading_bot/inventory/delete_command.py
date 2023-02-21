@@ -31,12 +31,14 @@ class Remove(commands.Cog):
         ctx (Context): The context in which the 'remove' command was called.
         """
         try:
+            # This channel should be available only for users we want them to
+            # have possibility to list items.
             if ctx.channel.id == 1061730004515430542:
                 self.delete_from_inventory.load_csv()
-                self.delete_from_inventory.get_id_from_message(
+                item_id = self.delete_from_inventory.get_id_from_message(
                     ctx.message.content
                 )
-                self.delete_from_inventory.delete()
+                self.delete_from_inventory.delete(item_id)
                 self.delete_from_inventory.item_has_attachments()
         except Exception as e:
             await handle_command_error(ctx, e)
