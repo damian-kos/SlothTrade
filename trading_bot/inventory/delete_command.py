@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from pathlib import Path
 from error_handler.errors import handle_command_error, handle_error
+from instance.pymongo_test_insert import MongoDb
 
 
 class Remove(commands.Cog):
@@ -18,6 +19,7 @@ class Remove(commands.Cog):
         path_to_inv_images (Path): A pathlib Path object representing the directory where inventory images are stored.
         """
         self.bot = bot
+        self.db = MongoDb()
         self.delete_from_inventory = DeleteFromInventory()
         self.path_to_inv_images = Path(__file__).parent / "inventory_images"
 
@@ -31,15 +33,17 @@ class Remove(commands.Cog):
         ctx (Context): The context in which the 'remove' command was called.
         """
         try:
-            # This channel should be available only for users we want them to
-            # have possibility to list items.
-            if ctx.channel.id == 1061730004515430542:
-                self.delete_from_inventory.load_csv()
-                item_id = self.delete_from_inventory.get_id_from_message(
-                    ctx.message.content
-                )
-                self.delete_from_inventory.delete(item_id)
-                self.delete_from_inventory.item_has_attachments()
+            self.db.guild_in_database(guild_id=ctx.guild.id)
+            if self.db.guild is not None:
+                self.sell_channel = self.db.guild["sell_channel"]
+                if ctx.channel.id == self.sell_channel:
+                    item_id = self.delete_from_inventory.get_id_from_message(
+                        ctx.message.content
+                    )
+                    self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
+                    self.delete_from_inventory.item_has_attachments(
+                        guild_id=ctx.guild.id, item_id=item_id
+                    )
         except Exception as e:
             await handle_command_error(ctx, e)
 

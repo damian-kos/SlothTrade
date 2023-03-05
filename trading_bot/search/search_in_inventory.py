@@ -5,6 +5,8 @@ from discord.ext import commands
 from embed.embed_message import embed_message, embed_text_message
 from embed.embed_pagination import Pagination
 
+# from instance.pymongo_test_insert import MongoDb
+
 
 class SearchInInventory:
     COLUMN_MAPPING = {
@@ -43,6 +45,7 @@ class SearchInInventory:
         self.__path_to_file = (
             Path("trading_bot") / "inventory" / "inventory.csv"
         )
+        # self.db = MongoDb()
         self.data = self.load_csv()
 
     def load_csv(self):
@@ -74,7 +77,7 @@ class SearchInInventory:
                 item = "iPhone"
             if count == 0 and "ipad" in item.lower():
                 item = "iPad"
-            print(f"{count}:{item}")
+            # print(f"{count}:{item}")
         return item
 
     def convert_message(self, discord_message):
@@ -92,40 +95,30 @@ class SearchInInventory:
             for count, word in enumerate(discord_message.split("-")[1:])
         ]
 
-        print(self.split_message)
-
-    def assign_split_message_to_variables(self):
-        """
-        Assigns the items in the split_message attribute to the corresponding attributes of the object.
-        """
-        attribute_mapping = {0: "make", 1: "model", 2: "part", 3: "color"}
-        for index, attribute in attribute_mapping.items():
-            if index < len(self.split_message):
-                setattr(self, attribute, self.split_message[index])
-        else:
-            setattr(self, attribute, None)
-
     def search(self):
-        """
-        Searches the loaded DataFrame for items that match the search criteria specified in the object's attributes.
-
-        Returns:
-            str or list: If items are found, returns a list of their IDs. If no items are found, returns a message
-            indicating that no items were found.
-        """
-        query = ""
-        for count, keyword in enumerate(self.split_message):
-            column_name = self.COLUMN_MAPPING.get(count)
-            print(column_name)
-            if column_name is not None:
-                query += f'(@self.data["{column_name}"] == "{keyword}") & '
-        query = query[:-3]  # Remove the last "& " from the query
-        print(query)
-        matching_rows = self.data.query(query)
-        if matching_rows.empty:
-            return "Sorry, no items within your search found!"
-        else:
-            return matching_rows["id"].tolist()
+        if len(self.split_message) == 4:
+            item_dict = {
+                "make": self.split_message[0],
+                "model": self.split_message[1],
+                "part": self.split_message[2],
+                "color": self.split_message[3],
+            }
+        elif len(self.split_message) == 3:
+            item_dict = {
+                "make": self.split_message[0],
+                "model": self.split_message[1],
+                "part": self.split_message[2],
+            }
+        elif len(self.split_message) == 2:
+            item_dict = {
+                "make": self.split_message[0],
+                "model": self.split_message[1],
+            }
+        elif len(self.split_message) == 1:
+            item_dict = {
+                "make": self.split_message[0],
+            }
+        return item_dict
 
     def no_items_message(self, search_result):
         """

@@ -2,6 +2,11 @@ from discord import Embed, File, Color
 from pathlib import Path
 
 
+def embed_simple_message(msg_title, msg_desc):
+    embed = Embed(title=msg_title, color=Color.blurple(), description=msg_desc)
+    return embed
+
+
 def embed_message(item_id: str, image_path: str, item_dict=None):
     """
     Creates a Discord Embed message containing information about an item and its associated image.
@@ -18,6 +23,7 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
     if item_dict is not None:
         item_description = item_dict["description"]
         item_title = f"{item_dict['make']} {item_dict['model']}"
+        item_part = item_dict["part"]
         item_price = item_dict["price"]
 
     embed = Embed(
@@ -26,12 +32,15 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
         title=item_title,
     )
 
+    if item_part != "":
+        embed.add_field(name="Part ", value=item_part, inline=False)
+
     if item_price != "":
-        embed.add_field(name="Price: ", value=f"£{item_price}", inline=True)
+        embed.add_field(name="Price: ", value=f"£{item_price}", inline=False)
 
     file = File("trading_bot\embed\logo.png", filename="thumbnail.png")
     author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")
-    item_image = File(f"{image_path}/{item_id}.png", filename="item_image.png")
+    item_image = File(f"{image_path}/{item_id}", filename="item_image.png")
 
     embed.set_thumbnail(url="attachment://thumbnail.png")
     embed.set_author(
@@ -40,13 +49,13 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
         url="https://www.google.com",
     )
     embed.set_image(url="attachment://item_image.png")
-
-    embed.set_footer(text=f"{item_id}")
+    footer_text = item_id.replace(".png", "").split("_")[1]
+    embed.set_footer(text=footer_text)
 
     return embed, [file, author_icon, item_image]
 
 
-def embed_text_message(text:str, title:str, description:str, fields=None):
+def embed_text_message(text: str, title: str, description: str, fields=None):
     """
     Creates a Discord Embed message containing text, a title, a description, and an optional set of fields.
 

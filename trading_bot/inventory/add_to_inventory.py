@@ -121,7 +121,7 @@ class AddToInventory:
         """
         self.data.to_csv(self.__path_to_file, index=False)
 
-    def add(self):
+    def add(self, id):
         """
         Add a new item to the inventory.
 
@@ -132,18 +132,9 @@ class AddToInventory:
         to confirm the operation.
 
         """
-        # Generate the next unique ID
-        try:
-            # Get the last item's ID in the DataFrame and add 1 to it,
-            # add leading zeros until its length is 5.
-            self.new_id = str(int(self.data["id"].iloc[-1]) + 1).zfill(5)
-        except IndexError:
-            # If no item is found, set new_id to 00001
-            self.new_id = "00001"
-
+        self.new_id = id
         self.assign_split_message_to_variables()
-        # inventory.csv
-        # id,make,model,part,color,description,price
+
         self.new_row = {
             "id": self.new_id,
             "make": self.make,
@@ -153,14 +144,8 @@ class AddToInventory:
             "description": self.description,
             "price": self.price,
         }
-        self.data = pd.concat(
-            [self.data, pd.DataFrame(self.new_row, index=[0])],
-            ignore_index=True,
-        )
-        self.__save_to_csv()
-        print("Saved_to_csv")
 
-    def download(self, count):
+    def download(self, guild_id, count):
         """
         Download an attachment and return its filename.
 
@@ -174,11 +159,11 @@ class AddToInventory:
         str
             The filename of the downloaded attachment.
         """
-        attachment_filename = f"/{self.new_id}"
+        self.attachment_filename = f"/{guild_id}_{self.new_id}"
         # If the count is not zero, add the count to the file name.
         if count == 0:
-            attachment_filename += ".png"
+            self.attachment_filename += ".png"
         # Otherwise append .png for the single file.
         else:
-            attachment_filename += f"_{count}.png"
-        return attachment_filename
+            self.attachment_filename += f"_{count}.png"
+        return self.attachment_filename

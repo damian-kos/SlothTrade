@@ -91,7 +91,7 @@ class DeleteFromInventory:
         self.data = self.data.drop(row_to_delete.index)
         self.__save_to_csv()
 
-    def item_has_attachments(self):
+    def item_has_attachments(self, guild_id, item_id):
         """
         Deletes the corresponding image file for an item from the inventory_images directory.
 
@@ -101,6 +101,6 @@ class DeleteFromInventory:
         """
         files = os.listdir(self.__path_to_inv_images)
         for file in files:
-            if self.id in file:
+            if str(guild_id) in file and item_id in file:
                 __file_path = os.path.join(self.__path_to_inv_images, file)
                 os.remove(__file_path)

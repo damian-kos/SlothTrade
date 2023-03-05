@@ -5,6 +5,7 @@ from .search_in_inventory import SearchInInventory
 from pathlib import Path
 import discord
 from error_handler.errors import handle_command_error, handle_error
+from instance.pymongo_test_insert import MongoDb
 
 
 class Search(commands.Cog):
@@ -21,6 +22,7 @@ class Search(commands.Cog):
         """
         self.search = SearchInInventory()
         self.bot = bot
+        self.db = MongoDb()
         self.path_to_inv_images = (
             Path("trading_bot") / "inventory" / "inventory_images"
         )
@@ -35,11 +37,16 @@ class Search(commands.Cog):
         ctx : Context
             The context of the message.
         """
-        try:
-            self.search.load_csv()
+        self.db.guild_in_database(guild_id=ctx.guild.id)
+        if self.db.guild is not None:
+            self.search_channel = self.db.guild["search_channel"]
             self.search.convert_message(ctx.message.content)
-            search_results = self.search.search()
-            print(search_results)
+            to_search = self.search.search()
+            search_results = self.db.search_item(
+                guild_id=ctx.guild.id, search_dict=to_search
+            )
+
+        try:
             if isinstance(search_results, str):
                 message = self.search.no_items_message(search_results)
                 await ctx.send(
@@ -48,16 +55,17 @@ class Search(commands.Cog):
                     file=message[2],
                 )
             else:
-                print(search_results)
-                items_dicts = self.search.items_found(search_results)
+                items_dicts = search_results
                 first_dict = items_dicts[0]
                 embed = embed_message(
-                    item_id=first_dict["id"],
+                    item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
                     image_path=f"{self.path_to_inv_images}",
                     item_dict=first_dict,
                 )
 
-                view = Pagination(items_dicts)
+                view = Pagination(
+                    guild_id=ctx.guild.id, found_items=items_dicts
+                )
                 view.response = await ctx.send(
                     "I've found these items for you.",
                     embed=embed[0],

@@ -17,6 +17,11 @@ intents = discord.Intents.all()
 intents.message_content = True
 bot = commands.Bot(command_prefix="/", intents=intents)
 
+import logging
+import sys
+
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
 
 async def main():
     async with bot:
@@ -24,6 +29,9 @@ async def main():
         await bot.load_extension("inventory.sell_command")
         await bot.load_extension("inventory.delete_command")
         await bot.load_extension("search.search_command")
+        await bot.load_extension("cogs.join_guild.join")
+        await bot.load_extension("cogs.set_channel.set")
+
         # Start the bot with the specified token
         await bot.start(TOKEN)
 

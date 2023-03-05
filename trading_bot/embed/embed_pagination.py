@@ -26,11 +26,12 @@ class Pagination(discord.ui.View):
             generates the embed message for the new item, and updates the message.
     """
 
-    def __init__(self, found_items):
+    def __init__(self, guild_id, found_items):
         super().__init__(timeout=5)
         self.path_to_inv_images = (
             Path("trading_bot") / "inventory" / "inventory_images"
         )
+        self.guild_id = guild_id
         self.response = None
         self.items = found_items
         self.current_page = 0
@@ -53,7 +54,7 @@ class Pagination(discord.ui.View):
         current_item_dict = self.items[self.current_page]
 
         embed = embed_message(
-            item_id=current_item_dict["id"],
+            item_id=(f"{self.guild_id}_{current_item_dict['id']}.png"),
             image_path=self.path_to_inv_images,
             item_dict=current_item_dict,
         )
@@ -74,10 +75,9 @@ class Pagination(discord.ui.View):
             button.disabled = True
         self.children[0].disabled = False
         current_item_dict = self.items[self.current_page]
-        print(current_item_dict)
 
         embed = embed_message(
-            item_id=current_item_dict["id"],
+            item_id=(f"{self.guild_id}_{current_item_dict['id']}.png"),
             image_path=self.path_to_inv_images,
             item_dict=current_item_dict,
         )
