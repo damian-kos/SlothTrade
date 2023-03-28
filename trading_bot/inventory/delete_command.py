@@ -35,8 +35,8 @@ class Remove(commands.Cog):
         try:
             self.db.guild_in_database(guild_id=ctx.guild.id)
             if self.db.guild is not None:
-                self.sell_channel = self.db.guild["sell_channel"]
-                if ctx.channel.id == self.sell_channel:
+                self.system_channel = self.db.guild["guild_system_channel"]
+                if ctx.channel.id == self.system_channel:
                     item_id = self.delete_from_inventory.get_id_from_message(
                         ctx.message.content
                     )

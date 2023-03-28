@@ -60,7 +60,6 @@ class Pagination(discord.ui.View):
         )
 
         await interaction.response.edit_message(
-            content=f"{current_item_dict}",
             embed=embed[0],
             attachments=embed[1],
             view=self,
@@ -83,7 +82,6 @@ class Pagination(discord.ui.View):
         )
 
         await interaction.response.edit_message(
-            content=f"{current_item_dict}",
             embed=embed[0],
             attachments=embed[1],
             view=self,

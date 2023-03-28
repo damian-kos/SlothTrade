@@ -42,11 +42,11 @@ class SearchInInventory:
                 were found based on the search.
 
         """
-        self.__path_to_file = (
-            Path("trading_bot") / "inventory" / "inventory.csv"
-        )
-        # self.db = MongoDb()
-        self.data = self.load_csv()
+        # self.__path_to_file = (
+        #     Path("trading_bot") / "inventory" / "inventory.csv"
+        # )
+        # # self.db = MongoDb()
+        # self.data = self.load_csv()
 
     def load_csv(self):
         """

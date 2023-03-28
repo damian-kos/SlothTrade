@@ -7,6 +7,15 @@ class MongoDb:
         self.collection_name = self.dbname["guilds"]
 
     def guild_in_database(self, guild_id):
+        """
+        Sets the guild attribute to the result of a MongoDB find_one query for a guild with the given ID.
+
+        Args:
+            guild_id (int): ID of guild.
+
+        Returns:
+            None. The method assigns the result of the query to the self.guild attribute.
+        """
         self.guild = self.collection_name.find_one({"_id": guild_id})
 
     def insert_guild(self, guild_id, guild_name, guild_system_channel):
@@ -70,7 +79,3 @@ class MongoDb:
         if len(sorted_items) == 0:
             return "No items"
         return sorted_items
-        #     print(item["items"])
-        # for directory in directories:
-        # if all(directory.get(key) == value for key, value in conditions.items() if value):
-        #     filtered_directories.append(directory)

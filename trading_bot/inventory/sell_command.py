@@ -19,8 +19,6 @@ class Sell(commands.Cog):
         self.add_to_inventory = AddToInventory()
         self.path_to_inv_images = Path(__file__).parent / "inventory_images"
         self.message = "Just landed!"
-        # This channel ID defines to what channel we will be sending
-        # posts of items we just added to our inventory.
 
     @commands.command(name="sell")
     async def sell_item(self, ctx):
@@ -47,12 +45,12 @@ class Sell(commands.Cog):
                 self.add_to_inventory.convert_message(ctx.message.content)
                 new_item_id = self.db.get_items_id(guild_id=ctx.guild.id)
                 new_item_id = str(new_item_id).zfill(5)
-                self.add_to_inventory.add(id=new_item_id)
-                self.db.add_item(
-                    guild_id=ctx.guild.id, item=self.add_to_inventory.new_row
+                new_item_dict = self.add_to_inventory.create_item_dict(
+                    id=new_item_id
                 )
-                #     # Download any attachments and save them to the
-                #     # inventory_images directory
+                self.db.add_item(guild_id=ctx.guild.id, item=new_item_dict)
+                # Download any attachments and save them to the
+                # inventory_images directory
                 if ctx.message.attachments:
                     for count, attachment in enumerate(ctx.message.attachments):
                         attachment_filename = self.add_to_inventory.download(
@@ -74,11 +72,6 @@ class Sell(commands.Cog):
                     await target_channel.send(
                         self.message, embed=embed[0], files=embed[1]
                     )
-            # else:
-            #     # React to the message with a poop emoji if it was sent in the wrong channel
-            #     # Item won't be added to inventory nor attachments will be
-            #     # downloaded.
-            #     await ctx.message.add_reaction("💩")
 
 
 async def setup(bot):

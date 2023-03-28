@@ -3,7 +3,6 @@ from embed.embed_pagination import Pagination
 from embed.embed_message import embed_message
 from pathlib import Path
 import discord
-from error_handler.errors import handle_command_error, handle_error
 from instance.pymongo_test_insert import MongoDb
 
 

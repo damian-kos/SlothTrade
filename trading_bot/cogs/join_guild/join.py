@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import Embed, File, Color
 from embed.embed_message import embed_simple_message
-from error_handler.errors import handle_command_error, handle_error
 from instance.pymongo_test_insert import MongoDb
 
 

@@ -26,12 +26,10 @@ class AddToInventory:
         Format an item's text.
     convert_message(discord_message):
         Convert a Discord message to a list of item properties.
-    assign_split_message_to_variables():
+    __assign_split_message_to_variables():
         Assign item properties to instance variables.
-    __save_to_csv():
-        Save the new item to the CSV file.
-    add():
-        Add a new item to the inventory.
+    create_item_dict():
+        Assign values to keys in dictionary. Returns new item's dict.
     download(count):
         Download an attachment and return its filename.
     """
@@ -40,21 +38,21 @@ class AddToInventory:
         """
         Initializes the instance of the class.
         """
-        self.__path_to_file = Path(__file__).parent / "inventory.csv"
-        self.data = self.load_csv()
+        # self.__path_to_file = Path(__file__).parent / "inventory.csv"
+        # self.data = self.load_csv()
         self.fresh_list = []
 
-    def load_csv(self):
-        """
-        Load the inventory data from the CSV file.
+    # def load_csv(self):
+    #     """
+    #     Load the inventory data from the CSV file.
 
-        Returns
-        -------
-        pandas.DataFrame
-            The inventory data.
-        """
-        self.data = pd.read_csv(self.__path_to_file, dtype=str)
-        return self.data
+    #     Returns
+    #     -------
+    #     pandas.DataFrame
+    #         The inventory data.
+    #     """
+    #     self.data = pd.read_csv(self.__path_to_file, dtype=str)
+    #     return self.data
 
     def format_item_text(self, count, item) -> str:
         """
@@ -98,7 +96,7 @@ class AddToInventory:
         for count, item in enumerate(self.split_message):
             self.split_message[count] = self.format_item_text(count, item)
 
-    def assign_split_message_to_variables(self):
+    def __assign_split_message_to_variables(self):
         """
         Assigns the split message to separate variables.
         """
@@ -113,27 +111,17 @@ class AddToInventory:
             self.color,
             self.description,
         ) = self.split_message
-        print(self.split_message)
 
-    def __save_to_csv(self):
+    def create_item_dict(self, id) -> dict:
         """
-        Save the new item to the CSV file.
-        """
-        self.data.to_csv(self.__path_to_file, index=False)
-
-    def add(self, id):
-        """
-        Add a new item to the inventory.
 
         This method generates a new unique ID for the item, assigns the values of
         make, model, part, color, description, and price to instance variables,
-        and creates a new row with these values in the inventory DataFrame. The
-        DataFrame is then saved to the inventory.csv file, and a message is printed
-        to confirm the operation.
+        and creates a new dictionary with these values.
 
         """
         self.new_id = id
-        self.assign_split_message_to_variables()
+        self.__assign_split_message_to_variables()
 
         self.new_row = {
             "id": self.new_id,
@@ -144,6 +132,7 @@ class AddToInventory:
             "description": self.description,
             "price": self.price,
         }
+        return self.new_row
 
     def download(self, guild_id, count):
         """
