@@ -9,56 +9,32 @@ from embed.embed_pagination import Pagination
 
 
 class SearchInInventory:
-    COLUMN_MAPPING = {
-        0: "make",
-        1: "model",
-        2: "part",
-        3: "color",
-    }
-
     def __init__(self) -> None:
         """A class to search for items in the inventory by make, model, part, and color.
 
-        This class uses a CSV file as the inventory data source, and provides a method to search for items
-        based on the information provided in a Discord message. The expected format of the message is:
-        '/search - <make> - <model> - <part> - <color>', where each field is optional.
-
-        Attributes:
-            COLUMN_MAPPING (dict): A mapping of column index to column name in the inventory CSV file.
-            data (pandas.DataFrame): The inventory data loaded from the CSV file.
+        This class provides a method to search for items based on the
+        information provided in a Discord message. The expected format of
+        the message is:
+        '/search - <make> - <model> - <part> - <color>',
+        where each field is optional.
 
         Methods:
-            load_csv(): Load the inventory data from the CSV file.
-            format_item_text(count, item): Format a text item by capitalizing the first letter and handling
-                some specific cases (e.g., iPhone, iPad).
-            convert_message(discord_message): Convert a Discord message to a list of item fields, and print
-                it for debugging purposes.
-            assign_split_message_to_variables(): Assign the item fields to instance variables based on the
-                COLUMN_MAPPING.
-            search(): Search for items in the inventory based on the assigned item fields.
-            no_items_message(search_result): Create a Discord embed message to inform the user that no items
+            format_item_text(count, item): Format a text item by
+                capitalizing the first letter and handling some specific
+                cases (e.g., iPhone, iPad).
+            convert_message(discord_message): Convert a Discord message
+                to a list of item fields, and print it for debugging
+                purposes.
+            search(): Search for items in the inventory based on the
+                assigned item fields.
+            no_items_message(search_result): Create a Discord embed
+                message to inform the user that no items
                 were found based on their search.
-            items_found(items_list): Create a list of dictionary representations of the inventory items that
+            items_found(items_list): Create a list of dictionary
+                representations of the inventory items that
                 were found based on the search.
 
         """
-        # self.__path_to_file = (
-        #     Path("trading_bot") / "inventory" / "inventory.csv"
-        # )
-        # # self.db = MongoDb()
-        # self.data = self.load_csv()
-
-    def load_csv(self):
-        """
-        Reads and loads the inventory.csv file.
-
-        Returns
-        -------
-        pandas.DataFrame
-            a dataframe of the inventory.csv file
-        """
-        self.data = pd.read_csv(self.__path_to_file, dtype=str)
-        return self.data
 
     def format_item_text(self, count, item):
         """
@@ -77,7 +53,6 @@ class SearchInInventory:
                 item = "iPhone"
             if count == 0 and "ipad" in item.lower():
                 item = "iPad"
-            # print(f"{count}:{item}")
         return item
 
     def convert_message(self, discord_message):
@@ -118,6 +93,9 @@ class SearchInInventory:
             item_dict = {
                 "make": self.split_message[0],
             }
+        else:
+            item_dict = {}
+            return item_dict
         return item_dict
 
     def no_items_message(self, search_result):
@@ -131,7 +109,7 @@ class SearchInInventory:
             dict: A dictionary containing the information for the embed message.
         """
         found_items = search_result
-        print(found_items)
+
         if isinstance(found_items, str):
             title = "Try search again or narrow your query."
             description = "Check if your command is correct."

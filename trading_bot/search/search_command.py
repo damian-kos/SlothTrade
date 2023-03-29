@@ -63,15 +63,25 @@ class Search(commands.Cog):
                     item_dict=first_dict,
                 )
 
-                view = Pagination(
-                    guild_id=ctx.guild.id, found_items=items_dicts
-                )
-                view.response = await ctx.send(
-                    "I've found these items for you.",
-                    embed=embed[0],
-                    files=embed[1],
-                    view=view,
-                )
+                # TODO
+                # If only one items is found it sends simple embed
+                # message. Needs cleanup.
+                if len(items_dicts) > 1:
+                    view = Pagination(
+                        guild_id=ctx.guild.id, found_items=items_dicts
+                    )
+                    view.response = await ctx.send(
+                        "I've found these items for you.",
+                        embed=embed[0],
+                        files=embed[1],
+                        view=view,
+                    )
+                elif len(items_dicts) == 1:
+                    await ctx.send(
+                        "I've found these items for you.",
+                        embed=embed[0],
+                        files=embed[1],
+                    )
         except Exception as e:
             await handle_command_error(ctx, e)
 

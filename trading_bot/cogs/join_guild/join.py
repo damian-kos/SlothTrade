@@ -7,6 +7,11 @@ from instance.pymongo_test_insert import MongoDb
 
 class Join(commands.Cog):
     def __init__(self, bot):
+        """
+        Creates an event listener on_guild_join. Whenever bot joins a
+        guild it searches for available text channels and sends a message
+        to first channel he has permissions to.
+        """
         self.bot = bot
         self.db = MongoDb()
         self.title = "Trading Bot has joined the server"
