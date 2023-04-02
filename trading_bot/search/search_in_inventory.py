@@ -69,6 +69,7 @@ class SearchInInventory:
             self.format_item_text(count, word.strip().lower())
             for count, word in enumerate(discord_message.split("-")[1:])
         ]
+        self.test_split_message = discord_message[8:]
 
     def search(self):
         if len(self.split_message) == 4:
@@ -111,12 +112,12 @@ class SearchInInventory:
         found_items = search_result
 
         if isinstance(found_items, str):
-            title = "Try search again or narrow your query."
+            title = "Try search again, narrow your query or be more specific."
             description = "Check if your command is correct."
             fields = {
-                "Command syntax": "\n/search - <make> - <model> - <part> - <color>\n",
-                "Command example #1": "\nsearch - iphone - xs max - charge port - black\n",
-                "Command example #2": "\n/search - Samsusng - A50\n",
+                "Command syntax to get best results": "\n/search <make> <model> <part> <color>\n",
+                "Command example #1": "\nsearch iphone xs max charge port black\n",
+                "Command example #2": "\n/search Samsung A50\n",
             }
 
             embed = embed_text_message(found_items, title, description, fields)

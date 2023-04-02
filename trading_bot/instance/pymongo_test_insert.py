@@ -1,4 +1,5 @@
 from instance.pymongo_get_database import get_database
+from .levenshtein_algorithm import levenshtein_similarity
 
 
 class MongoDb:
@@ -79,3 +80,43 @@ class MongoDb:
         if len(sorted_items) == 0:
             return "No items"
         return sorted_items
+
+    def __dict_to_string(self, dictionary):
+        """
+        Converts a dictionary to a string with the format 'make model part color description price'
+        """
+        return (
+            f"{dictionary['make'].lower()} {dictionary['model']} "
+            f"{dictionary['part'].lower()} {dictionary['color'].lower()} "
+        )
+
+    def read_models(self):
+        with open("trading_bot\instance\models.txt", "r") as file:
+            self.models = [word.replace("\n", "") for word in file.readlines()]
+
+    def levenshtein_search(self, guild_id, search):
+        self.read_models()
+        leve_sorted_items = {}
+        items = self.collection_name.find({"_id": guild_id})
+        if not items:
+            return "No items"
+
+        for item in items[0]["items"]:
+            item_in_db_as_string = self.__dict_to_string(item)
+            similarity = levenshtein_similarity(
+                search_phrase=search, db_item=item_in_db_as_string
+            )
+
+            for model in self.models:
+                if model in search and model in item_in_db_as_string:
+                    similarity -= 5
+            leve_sorted_items.setdefault(similarity, []).append(item)
+        sorted_items = sorted(
+            (k, v) for k, v in leve_sorted_items.items() if k <= 15
+        )
+        if len(sorted_items) == 0:
+            return "No items"
+        unpacked_list = [
+            item for sublist in (v for k, v in sorted_items) for item in sublist
+        ]
+        return unpacked_list

@@ -42,10 +42,9 @@ class Search(commands.Cog):
             self.search_channel = self.db.guild["search_channel"]
             self.search.convert_message(ctx.message.content)
             to_search = self.search.search()
-            search_results = self.db.search_item(
-                guild_id=ctx.guild.id, search_dict=to_search
+            search_results = self.db.levenshtein_search(
+                guild_id=ctx.guild.id, search=self.search.test_split_message
             )
-
         try:
             if isinstance(search_results, str):
                 message = self.search.no_items_message(search_results)
