@@ -33,7 +33,6 @@ class Sell(commands.Cog):
         Returns:
             None
         """
-
         self.db.guild_in_database(guild_id=ctx.guild.id)
         if self.db.guild is not None:
             self.sell_channel = self.db.guild["sell_channel"]

@@ -4,36 +4,123 @@ from .levenshtein_algorithm import levenshtein_similarity
 
 class MongoDb:
     def __init__(self):
+        """
+        A class for accessing a MongoDB database containing information
+        about guilds and their items.
+
+        Attributes:
+            dbname (pymongo.database.Database): The database to connect
+            to.
+            collection_name (pymongo.collection.Collection):
+            The collection within the database to interact with.
+
+        Methods:
+            guild_in_database(guild_id):
+                Returns the result of a MongoDB find_one query for
+                a guild with the given ID.
+
+            insert_guild(guild_id, guild_name, guild_system_channel):
+                Inserts a new guild with the given ID, name, and
+                system channel into the collection.
+
+            delete_guild(guild_id):
+                Deletes the guild with the given ID from the collection.
+
+            set_channel(guild_id, channel_id, channel_type=""):
+                Sets the system or voice channel ID of the guild with the
+                  given ID in the collection.
+
+            get_items_id(guild_id):
+                Returns the ID of the next item to be added to the guild
+                with the given ID.
+
+            add_item(guild_id, item):
+                Adds a new item to the guild with the given ID in the
+                collection.
+
+            delete_item(guild_id, item_id):
+                Deletes the item with the given ID from the guild with
+                the given ID in the collection.
+
+            __compute_similarity(search_phrase, db_item, models):
+                Computes the Levenshtein similarity between a search
+                phrase and an item in the database.
+
+            sort_results(items, similarity_threshold, search_phrase):
+                Sorts a list of items by Levenshtein similarity to
+                a search phrase and by model priority.
+
+            levenshtein_search(guild_id, search):
+                Searches for items within a guild using a Levenshtein
+                algorithm and returns them sorted by similarity to the search phrase.
+
+            __read_models():
+                Reads a list of models from a text file.
+
+        """
         self.dbname = get_database()
         self.collection_name = self.dbname["guilds"]
 
     def guild_in_database(self, guild_id):
         """
-        Sets the guild attribute to the result of a MongoDB find_one query for a guild with the given ID.
+        Sets the guild attribute to the result of a MongoDB find_one
+        query for a guild with the given ID.
 
         Args:
             guild_id (int): ID of guild.
 
         Returns:
-            None. The method assigns the result of the query to the self.guild attribute.
+            The result of the query as a dictionary, or None if no guild
+            is found.
         """
-        self.guild = self.collection_name.find_one({"_id": guild_id})
+        return self.collection_name.find_one({"_id": guild_id})
 
     def insert_guild(self, guild_id, guild_name, guild_system_channel):
-        guild = {
+        """
+        Inserts a new guild into the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+            guild_name (str): Name of guild.
+            guild_system_channel (int): ID of system channel.
+
+        Returns:
+            None
+        """
+        guild_info = {
             "_id": guild_id,
             "guild_name": guild_name,
             "guild_system_channel": guild_system_channel,
         }
-        self.collection_name.insert_one(guild)
+        self.collection_name.insert_one(guild_info)
 
     def delete_guild(self, guild_id):
+        """
+        Deletes a guild from the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+
+        Returns:
+            None
+        """
         guild = {
             "_id": guild_id,
         }
         self.collection_name.delete_one(guild)
 
     def set_channel(self, guild_id, channel_id, channel_type=""):
+        """
+        Sets the channel attribute of a guild in the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+            channel_id (int): ID of channel to set.
+            channel_type (str): Type of channel to set.
+
+        Returns:
+            None
+        """
         found = self.collection_name.find_one({"_id": guild_id})
         if found is not None:
             self.collection_name.update_one(
@@ -42,15 +129,34 @@ class MongoDb:
             )
 
     def get_items_id(self, guild_id):
+        """
+        Gets the ID for the next item to be added to the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+
+        Returns:
+            int: The next item ID, or "1" if no items are found.
+        """
         found = self.collection_name.find_one({"_id": guild_id})
         try:
             return int(found["items"][-1]["id"]) + 1
         except KeyError:
-            return "1"
+            return "1"  # returns "1" as it will be first item filled with 0s
         except IndexError:
-            return "1"
+            return "1"  # returns "1" as it will be first item filled with 0s
 
     def add_item(self, guild_id, item):
+        """
+        Adds an item to the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+            item (dict): The item to add.
+
+        Returns:
+            None
+        """
         found = self.collection_name.find_one({"_id": guild_id})
         if found is not None:
             self.collection_name.update_one(
@@ -59,27 +165,22 @@ class MongoDb:
             )
 
     def delete_item(self, guild_id, item_id):
+        """
+        Deletes an item from the MongoDB.
+
+        Args:
+            guild_id (int): ID of guild.
+            item_id (int): ID of item to delete.
+
+        Returns:
+            None
+        """
         found = self.collection_name.find_one({"_id": guild_id})
         if found is not None:
             self.collection_name.update_one(
                 {"_id": guild_id},
                 {"$pull": {"items": {"id": item_id}}},
             )
-
-    def search_item(self, guild_id, search_dict):
-        items = self.collection_name.find({"_id": guild_id})
-        sorted_items = []
-        for item in items[0]["items"]:
-            match = True
-            for key, value in search_dict.items():
-                if key not in item or item[key] != value:
-                    match = False
-                    break
-            if match:
-                sorted_items.append(item)
-        if len(sorted_items) == 0:
-            return "No items"
-        return sorted_items
 
     def __dict_to_string(self, dictionary):
         """
@@ -90,29 +191,44 @@ class MongoDb:
             f"{dictionary['part'].lower()} {dictionary['color'].lower()} "
         )
 
-    def read_models(self):
+    @staticmethod
+    def __read_models():
+        """
+        Reads a list of models from a text file.
+
+        Args:
+            None
+
+        Returns:
+            list: List of model names.
+        """
         with open("trading_bot\instance\models.txt", "r") as file:
-            self.models = [word.replace("\n", "") for word in file.readlines()]
+            return [word.replace("\n", "") for word in file.readlines()]
 
-    def levenshtein_search(self, guild_id, search):
-        self.read_models()
+    def __compute_similarity(self, search_phrase, db_item, models):
+        similarity = levenshtein_similarity(
+            search_phrase=search_phrase, db_item=db_item
+        )
+        # If model is in a search string and in list of models it is prioritized to be on top of sorted list.
+        for model in models:
+            if model in search_phrase and model in db_item:
+                similarity -= 5
+        return similarity
+
+    def __sort_results(self, items, similarity_threshold, search_phrase):
         leve_sorted_items = {}
-        items = self.collection_name.find({"_id": guild_id})
-        if not items:
-            return "No items"
-
-        for item in items[0]["items"]:
+        for item in items:
             item_in_db_as_string = self.__dict_to_string(item)
-            similarity = levenshtein_similarity(
-                search_phrase=search, db_item=item_in_db_as_string
+            similarity = self.__compute_similarity(
+                search_phrase=search_phrase,
+                db_item=item_in_db_as_string,
+                models=self.models,
             )
-
-            for model in self.models:
-                if model in search and model in item_in_db_as_string:
-                    similarity -= 5
             leve_sorted_items.setdefault(similarity, []).append(item)
         sorted_items = sorted(
-            (k, v) for k, v in leve_sorted_items.items() if k <= 15
+            (k, v)
+            for k, v in leve_sorted_items.items()
+            if k <= similarity_threshold
         )
         if len(sorted_items) == 0:
             return "No items"
@@ -120,3 +236,26 @@ class MongoDb:
             item for sublist in (v for k, v in sorted_items) for item in sublist
         ]
         return unpacked_list
+
+    def levenshtein_search(self, guild_id, search):
+        """
+        Searches for an items within users query and sorts them. Prioritizes items included in .txt file.
+
+        Args:
+            guild_id (int): ID of guild.
+
+        Returns:
+            str: If no results were find.
+            dict: If there are items to show.
+        """
+        self.models = self.__read_models()
+        items = self.collection_name.find({"_id": guild_id})
+        if not items:
+            return "No items"
+
+        sorted_items = self.__sort_results(
+            items=items[0]["items"],
+            similarity_threshold=15,
+            search_phrase=search,
+        )
+        return sorted_items

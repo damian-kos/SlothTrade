@@ -55,7 +55,7 @@ class SearchInInventory:
                 item = "iPad"
         return item
 
-    def convert_message(self, discord_message):
+    def convert_message(self, discord_message: str) -> str:
         """
         Converts a message received from a Discord server into a list of formatted items.
 
@@ -63,41 +63,41 @@ class SearchInInventory:
             discord_message (str): The message received from the Discord server.
 
         Returns:
-            list: A list of formatted items.
+            str: Search query.
         """
-        self.split_message = [
-            self.format_item_text(count, word.strip().lower())
-            for count, word in enumerate(discord_message.split("-")[1:])
-        ]
-        self.test_split_message = discord_message[8:]
+        # self.split_message = [
+        #     self.format_item_text(count, word.strip().lower())
+        #     for count, word in enumerate(discord_message.split("-")[1:])
+        # ]
+        return discord_message[8:]
 
-    def search(self):
-        if len(self.split_message) == 4:
-            item_dict = {
-                "make": self.split_message[0],
-                "model": self.split_message[1],
-                "part": self.split_message[2],
-                "color": self.split_message[3],
-            }
-        elif len(self.split_message) == 3:
-            item_dict = {
-                "make": self.split_message[0],
-                "model": self.split_message[1],
-                "part": self.split_message[2],
-            }
-        elif len(self.split_message) == 2:
-            item_dict = {
-                "make": self.split_message[0],
-                "model": self.split_message[1],
-            }
-        elif len(self.split_message) == 1:
-            item_dict = {
-                "make": self.split_message[0],
-            }
-        else:
-            item_dict = {}
-            return item_dict
-        return item_dict
+    # def search(self):
+    #     if len(self.split_message) == 4:
+    #         item_dict = {
+    #             "make": self.split_message[0],
+    #             "model": self.split_message[1],
+    #             "part": self.split_message[2],
+    #             "color": self.split_message[3],
+    #         }
+    #     elif len(self.split_message) == 3:
+    #         item_dict = {
+    #             "make": self.split_message[0],
+    #             "model": self.split_message[1],
+    #             "part": self.split_message[2],
+    #         }
+    #     elif len(self.split_message) == 2:
+    #         item_dict = {
+    #             "make": self.split_message[0],
+    #             "model": self.split_message[1],
+    #         }
+    #     elif len(self.split_message) == 1:
+    #         item_dict = {
+    #             "make": self.split_message[0],
+    #         }
+    #     else:
+    #         item_dict = {}
+    #         return item_dict
+    #     return item_dict
 
     def no_items_message(self, search_result):
         """

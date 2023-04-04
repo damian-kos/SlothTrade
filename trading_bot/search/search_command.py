@@ -20,7 +20,7 @@ class Search(commands.Cog):
         on_command_error(ctx, error)
             An error handler for the search command.
         """
-        self.search = SearchInInventory()
+        self.search_in_inventory = SearchInInventory()
         self.bot = bot
         self.db = MongoDb()
         self.path_to_inv_images = (
@@ -37,13 +37,14 @@ class Search(commands.Cog):
         ctx : Context
             The context of the message.
         """
-        self.db.guild_in_database(guild_id=ctx.guild.id)
-        if self.db.guild is not None:
-            self.search_channel = self.db.guild["search_channel"]
-            self.search.convert_message(ctx.message.content)
-            to_search = self.search.search()
+        guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+        if guild is not None:
+            self.search_channel = guild["search_channel"]
+            search_query = self.search_in_inventory.convert_message(
+                ctx.message.content
+            )
             search_results = self.db.levenshtein_search(
-                guild_id=ctx.guild.id, search=self.search.test_split_message
+                guild_id=ctx.guild.id, search=search_query
             )
         try:
             if isinstance(search_results, str):
