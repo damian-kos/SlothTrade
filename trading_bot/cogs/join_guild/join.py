@@ -1,6 +1,4 @@
-import discord
 from discord.ext import commands
-from discord import Embed, File, Color
 from embed.embed_message import embed_simple_message
 from instance.pymongo_test_insert import MongoDb
 

@@ -1,12 +1,4 @@
-import pandas as pd
-from pathlib import Path
-import os
-from discord.ext import commands
-from embed.embed_message import embed_message, embed_text_message
-from embed.embed_pagination import Pagination
-
-# from instance.pymongo_test_insert import MongoDb
-
+from embed.embed_message import embed_text_message
 
 class SearchInInventory:
     def __init__(self) -> None:
@@ -65,39 +57,7 @@ class SearchInInventory:
         Returns:
             str: Search query.
         """
-        # self.split_message = [
-        #     self.format_item_text(count, word.strip().lower())
-        #     for count, word in enumerate(discord_message.split("-")[1:])
-        # ]
         return discord_message[8:]
-
-    # def search(self):
-    #     if len(self.split_message) == 4:
-    #         item_dict = {
-    #             "make": self.split_message[0],
-    #             "model": self.split_message[1],
-    #             "part": self.split_message[2],
-    #             "color": self.split_message[3],
-    #         }
-    #     elif len(self.split_message) == 3:
-    #         item_dict = {
-    #             "make": self.split_message[0],
-    #             "model": self.split_message[1],
-    #             "part": self.split_message[2],
-    #         }
-    #     elif len(self.split_message) == 2:
-    #         item_dict = {
-    #             "make": self.split_message[0],
-    #             "model": self.split_message[1],
-    #         }
-    #     elif len(self.split_message) == 1:
-    #         item_dict = {
-    #             "make": self.split_message[0],
-    #         }
-    #     else:
-    #         item_dict = {}
-    #         return item_dict
-    #     return item_dict
 
     def no_items_message(self, search_result):
         """

@@ -29,7 +29,7 @@ class Pagination(discord.ui.View):
     def __init__(self, guild_id, found_items):
         super().__init__(timeout=5)
         self.path_to_inv_images = (
-            Path("trading_bot") / "inventory" / "inventory_images"
+            Path("trading_bot") / "cogs" / "inventory" / "inventory_images"
         )
         self.guild_id = guild_id
         self.response = None

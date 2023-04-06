@@ -3,7 +3,6 @@ from embed.embed_pagination import Pagination
 from embed.embed_message import embed_message
 from .search_in_inventory import SearchInInventory
 from pathlib import Path
-import discord
 from error_handler.errors import handle_command_error, handle_error
 from instance.pymongo_test_insert import MongoDb
 
@@ -24,7 +23,7 @@ class Search(commands.Cog):
         self.bot = bot
         self.db = MongoDb()
         self.path_to_inv_images = (
-            Path("trading_bot") / "inventory" / "inventory_images"
+            Path("trading_bot") / "cogs" / "inventory" / "inventory_images"
         )
 
     @commands.command(name="search")

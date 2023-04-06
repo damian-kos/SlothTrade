@@ -33,9 +33,9 @@ class Remove(commands.Cog):
         ctx (Context): The context in which the 'remove' command was called.
         """
         try:
-            self.db.guild_in_database(guild_id=ctx.guild.id)
-            if self.db.guild is not None:
-                self.system_channel = self.db.guild["guild_system_channel"]
+            guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+            if guild is not None:
+                self.system_channel = guild["guild_system_channel"]
                 if ctx.channel.id == self.system_channel:
                     item_id = self.delete_from_inventory.get_id_from_message(
                         ctx.message.content

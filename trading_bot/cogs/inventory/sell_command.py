@@ -33,10 +33,10 @@ class Sell(commands.Cog):
         Returns:
             None
         """
-        self.db.guild_in_database(guild_id=ctx.guild.id)
-        if self.db.guild is not None:
-            self.sell_channel = self.db.guild["sell_channel"]
-            self.listing_channel = self.db.guild["listing_channel"]
+        guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+        if guild is not None:
+            self.sell_channel = guild["sell_channel"]
+            self.listing_channel = guild["listing_channel"]
             # Check if the message was sent in the correct channel
             # This channel should be available only for users we want them to
             # have possibility to list items.
