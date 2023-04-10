@@ -1,5 +1,5 @@
 from instance.pymongo_get_database import get_database
-from .levenshtein_algorithm import levenshtein_similarity
+from .levenshtein_algorithm import levenshtein_similarity, fuzz_test
 
 
 class MongoDb:
@@ -54,14 +54,12 @@ class MongoDb:
                 Searches for items within a guild using a Levenshtein
                 algorithm and returns them sorted by similarity to the search phrase.
 
-            __read_models():
-                Reads a list of models from a text file.
 
         """
         self.dbname = get_database()
         self.collection_name = self.dbname["guilds"]
 
-    def guild_in_database(self, guild_id):
+    def guild_in_database(self, guild_id: int):
         """
         Sets the guild attribute to the result of a MongoDB find_one
         query for a guild with the given ID.
@@ -73,9 +71,12 @@ class MongoDb:
             The result of the query as a dictionary, or None if no guild
             is found.
         """
-        return self.collection_name.find_one({"_id": guild_id})
+        self.guild = self.collection_name.find_one({"_id": guild_id})
+        return self.guild
 
-    def insert_guild(self, guild_id, guild_name, guild_system_channel):
+    def insert_guild(
+        self, guild_id: int, guild_name: str, guild_system_channel: int
+    ):
         """
         Inserts a new guild into the MongoDB.
 
@@ -94,7 +95,7 @@ class MongoDb:
         }
         self.collection_name.insert_one(guild_info)
 
-    def delete_guild(self, guild_id):
+    def delete_guild(self, guild_id: int):
         """
         Deletes a guild from the MongoDB.
 
@@ -121,14 +122,27 @@ class MongoDb:
         Returns:
             None
         """
-        found = self.collection_name.find_one({"_id": guild_id})
+        found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
                 {"_id": guild_id},
                 {"$set": {f"{channel_type}_channel": channel_id}},
             )
 
-    def get_items_id(self, guild_id):
+    def define_item_properties(self, guild_id, item_properties_tuple):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$set": {f"item_properties": item_properties_tuple}},
+            )
+
+    def get_item_properties(self, guild_id):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            return found["item_properties"]
+
+    def get_items_id(self):
         """
         Gets the ID for the next item to be added to the MongoDB.
 
@@ -138,13 +152,11 @@ class MongoDb:
         Returns:
             int: The next item ID, or "1" if no items are found.
         """
-        found = self.collection_name.find_one({"_id": guild_id})
-        try:
+        found = self.guild
+        if found is not None:
+            if len(found["items"]) == 0:
+                return "1"  # If no items in db, start with 00001
             return int(found["items"][-1]["id"]) + 1
-        except KeyError:
-            return "1"  # returns "1" as it will be first item filled with 0s
-        except IndexError:
-            return "1"  # returns "1" as it will be first item filled with 0s
 
     def add_item(self, guild_id, item):
         """
@@ -157,7 +169,7 @@ class MongoDb:
         Returns:
             None
         """
-        found = self.collection_name.find_one({"_id": guild_id})
+        found = self.guild
         if found is not None:
             self.collection_name.update_one(
                 {"_id": guild_id},
@@ -175,60 +187,44 @@ class MongoDb:
         Returns:
             None
         """
-        found = self.collection_name.find_one({"_id": guild_id})
+        found = self.guild
         if found is not None:
             self.collection_name.update_one(
                 {"_id": guild_id},
                 {"$pull": {"items": {"id": item_id}}},
             )
 
-    def __dict_to_string(self, dictionary):
+    def __dict_to_string(self, dictionary, item_properties):
         """
         Converts a dictionary to a string with the format 'make model part color description price'
         """
-        return (
-            f"{dictionary['make'].lower()} {dictionary['model']} "
-            f"{dictionary['part'].lower()} {dictionary['color'].lower()} "
+        return " ".join(
+            [
+                f"{value.lower()}"
+                for key, value in dictionary.items()
+                if key in item_properties
+            ]
         )
 
-    @staticmethod
-    def __read_models():
-        """
-        Reads a list of models from a text file.
-
-        Args:
-            None
-
-        Returns:
-            list: List of model names.
-        """
-        with open("trading_bot\instance\models.txt", "r") as file:
-            return [word.replace("\n", "") for word in file.readlines()]
-
-    def __compute_similarity(self, search_phrase, db_item, models):
-        similarity = levenshtein_similarity(
-            search_phrase=search_phrase, db_item=db_item
-        )
-        # If model is in a search string and in list of models it is prioritized to be on top of sorted list.
-        for model in models:
-            if model in search_phrase and model in db_item:
-                similarity -= 5
+    def __compute_similarity(self, search_phrase, db_item):
+        similarity = fuzz_test(query=search_phrase, db_item=db_item)
         return similarity
 
-    def __sort_results(self, items, similarity_threshold, search_phrase):
+    def __sort_results(
+        self, items, similarity_threshold, search_phrase, item_properties
+    ):
         leve_sorted_items = {}
         for item in items:
-            item_in_db_as_string = self.__dict_to_string(item)
+            item_in_db_as_string = self.__dict_to_string(item, item_properties)
             similarity = self.__compute_similarity(
                 search_phrase=search_phrase,
                 db_item=item_in_db_as_string,
-                models=self.models,
             )
             leve_sorted_items.setdefault(similarity, []).append(item)
         sorted_items = sorted(
             (k, v)
             for k, v in leve_sorted_items.items()
-            if k <= similarity_threshold
+            if k >= similarity_threshold
         )
         if len(sorted_items) == 0:
             return "No items"
@@ -248,14 +244,14 @@ class MongoDb:
             str: If no results were find.
             dict: If there are items to show.
         """
-        self.models = self.__read_models()
         items = self.collection_name.find({"_id": guild_id})
+
         if not items:
             return "No items"
-
         sorted_items = self.__sort_results(
             items=items[0]["items"],
-            similarity_threshold=15,
+            item_properties=items[0]["item_properties"],
+            similarity_threshold=60,
             search_phrase=search,
         )
         return sorted_items

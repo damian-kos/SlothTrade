@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 from discord.ext import commands
+from collections import namedtuple
 
 
 class AddToInventory:
@@ -9,24 +10,13 @@ class AddToInventory:
 
     ...
 
-    Attributes
-    ----------
-    __path_to_file : str
-        The path to the CSV file containing the inventory data.
-    data : pandas.DataFrame
-        The inventory data.
-    fresh_list : list
-        An empty list to store new items.
-
     Methods
     -------
-    load_csv():
-        Load the inventory data from the CSV file.
     format_item_text(count, item):
         Format an item's text.
     convert_message(discord_message):
         Convert a Discord message to a list of item properties.
-    __assign_split_message_to_variables():
+    __price_handler():
         Assign item properties to instance variables.
     create_item_dict():
         Assign values to keys in dictionary. Returns new item's dict.
@@ -34,25 +24,12 @@ class AddToInventory:
         Download an attachment and return its filename.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, item_properties) -> None:
         """
         Initializes the instance of the class.
         """
-        # self.__path_to_file = Path(__file__).parent / "inventory.csv"
-        # self.data = self.load_csv()
-        self.fresh_list = []
-
-    # def load_csv(self):
-    #     """
-    #     Load the inventory data from the CSV file.
-
-    #     Returns
-    #     -------
-    #     pandas.DataFrame
-    #         The inventory data.
-    #     """
-    #     self.data = pd.read_csv(self.__path_to_file, dtype=str)
-    #     return self.data
+        self.Item = namedtuple("Item", (*item_properties, "price"))
+        self.current_item_properties = item_properties
 
     def format_item_text(self, count, item) -> str:
         """
@@ -96,43 +73,30 @@ class AddToInventory:
         for count, item in enumerate(self.split_message):
             self.split_message[count] = self.format_item_text(count, item)
 
-    def __assign_split_message_to_variables(self):
+    def __price_handler(self):
         """
-        Assigns the split message to separate variables.
+        Checks if given message as a list is longer than item's
+        attribute. Assigns price value if so.
         """
         self.price = ""
-        if len(self.split_message) == 6:
+        if len(self.split_message) == len(self.current_item_properties) + 1:
             self.price = self.split_message[-1]
             self.split_message.pop()
-        (
-            self.make,
-            self.model,
-            self.part,
-            self.color,
-            self.description,
-        ) = self.split_message
 
     def create_item_dict(self, id) -> dict:
         """
-
-        This method generates a new unique ID for the item, assigns the values of
+        Generates a new unique ID for the item, assigns the values of
         make, model, part, color, description, and price to instance variables,
         and creates a new dictionary with these values.
-
         """
         self.new_id = id
-        self.__assign_split_message_to_variables()
-
-        self.new_row = {
-            "id": self.new_id,
-            "make": self.make,
-            "model": self.model,
-            "part": self.part,
-            "color": self.color,
-            "description": self.description,
-            "price": self.price,
-        }
-        return self.new_row
+        self.__price_handler()
+        item = self.Item(
+            *self.split_message,
+            self.price,
+        )
+        new_row = {"id": id, **item._asdict()}
+        return new_row
 
     def download(self, guild_id, count):
         """

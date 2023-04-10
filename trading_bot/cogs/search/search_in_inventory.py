@@ -1,5 +1,6 @@
 from embed.embed_message import embed_text_message
 
+
 class SearchInInventory:
     def __init__(self) -> None:
         """A class to search for items in the inventory by make, model, part, and color.

@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from pathlib import Path
 from error_handler.errors import handle_command_error, handle_error
-from instance.pymongo_test_insert import MongoDb
+from instance.pymongo_operations import MongoDb
 
 
 class Remove(commands.Cog):
@@ -46,17 +46,6 @@ class Remove(commands.Cog):
                     )
         except Exception as e:
             await handle_command_error(ctx, e)
-
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        """
-        Handles errors that occur when the 'remove' command is called.
-
-        Args:
-        ctx (Context): The context in which the error occurred.
-        error (Exception): The error that occurred.
-        """
-        await handle_error(ctx, error)
 
 
 async def setup(bot):

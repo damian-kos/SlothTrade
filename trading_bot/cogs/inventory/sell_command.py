@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from pathlib import Path
 from embed.embed_message import embed_message
-from instance.pymongo_test_insert import MongoDb
+from instance.pymongo_operations import MongoDb
 
 
 class Sell(commands.Cog):
@@ -16,7 +16,6 @@ class Sell(commands.Cog):
         """
         self.bot = bot
         self.db = MongoDb()
-        self.add_to_inventory = AddToInventory()
         self.path_to_inv_images = Path(__file__).parent / "inventory_images"
         self.message = "Just landed!"
 
@@ -35,6 +34,10 @@ class Sell(commands.Cog):
         """
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
         if guild is not None:
+            item_properties = self.db.get_item_properties(guild_id=ctx.guild.id)
+            self.add_to_inventory = AddToInventory(
+                item_properties=item_properties
+            )
             self.sell_channel = guild["sell_channel"]
             self.listing_channel = guild["listing_channel"]
             # Check if the message was sent in the correct channel
@@ -42,7 +45,7 @@ class Sell(commands.Cog):
             # have possibility to list items.
             if ctx.channel.id == self.sell_channel:
                 self.add_to_inventory.convert_message(ctx.message.content)
-                new_item_id = self.db.get_items_id(guild_id=ctx.guild.id)
+                new_item_id = self.db.get_items_id()
                 new_item_id = str(new_item_id).zfill(5)
                 new_item_dict = self.add_to_inventory.create_item_dict(
                     id=new_item_id
@@ -62,10 +65,11 @@ class Sell(commands.Cog):
                     # React to the message with a money bag emoji
                     await ctx.message.add_reaction("💷")
                     #  Generate an embedded message and send it to the specified channel
+
                     embed = embed_message(
                         item_id=self.add_to_inventory.attachment_filename,
                         image_path=self.path_to_inv_images,
-                        item_dict=self.add_to_inventory.new_row,
+                        item_dict=new_item_dict,
                     )
                     target_channel = self.bot.get_channel(self.listing_channel)
                     await target_channel.send(

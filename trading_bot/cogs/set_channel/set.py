@@ -3,7 +3,7 @@ from embed.embed_pagination import Pagination
 from embed.embed_message import embed_message
 from pathlib import Path
 import discord
-from instance.pymongo_test_insert import MongoDb
+from instance.pymongo_operations import MongoDb
 
 
 class Set(commands.Cog):
@@ -14,7 +14,7 @@ class Set(commands.Cog):
         self.description = "‣ You can configure me using: `/settings`"
 
     @commands.command(name="set")
-    async def search(self, ctx):
+    async def set_channel(self, ctx):
         channel_to_set = ctx.message.content.split(" ")[-1]
         print(ctx.guild.id)
         print(ctx.channel.id)

@@ -21,22 +21,21 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
     - files (List[discord.File]): A list of file objects containing the thumbnail, author icon, and item image.
     """
     if item_dict is not None:
-        item_description = item_dict["description"]
-        item_title = f"{item_dict['make']} {item_dict['model']}"
-        item_part = item_dict["part"]
-        item_price = item_dict["price"]
+        item_title = list(item_dict.values())[1]
+        item_subtitle = list(item_dict.values())[2]
 
-    embed = Embed(
-        description=item_description,
-        color=Color.green(),
-        title=item_title,
-    )
+        embed = Embed(
+            description=item_subtitle.capitalize(),
+            color=Color.green(),
+            title=item_title.capitalize(),
+        )
 
-    if item_part != "":
-        embed.add_field(name="Part ", value=item_part, inline=False)
-
-    if item_price != "":
-        embed.add_field(name="Price: ", value=f"£{item_price}", inline=False)
+        for key, value in list(item_dict.items())[2:]:
+            if key == "price" and value == "":
+                break
+            key = key.capitalize()
+            value = value.capitalize()
+            embed.add_field(name=key, value=value, inline=True)
 
     file = File("trading_bot\embed\logo.png", filename="thumbnail.png")
     author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")

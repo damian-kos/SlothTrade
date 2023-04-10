@@ -4,7 +4,7 @@ from embed.embed_message import embed_message
 from .search_in_inventory import SearchInInventory
 from pathlib import Path
 from error_handler.errors import handle_command_error, handle_error
-from instance.pymongo_test_insert import MongoDb
+from instance.pymongo_operations import MongoDb
 
 
 class Search(commands.Cog):
@@ -39,50 +39,51 @@ class Search(commands.Cog):
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
         if guild is not None:
             self.search_channel = guild["search_channel"]
-            search_query = self.search_in_inventory.convert_message(
-                ctx.message.content
-            )
-            search_results = self.db.levenshtein_search(
-                guild_id=ctx.guild.id, search=search_query
-            )
-        try:
-            if isinstance(search_results, str):
-                message = self.search.no_items_message(search_results)
-                await ctx.send(
-                    message[0],
-                    embed=message[1],
-                    file=message[2],
+            if ctx.channel.id == self.search_channel:
+                search_query = self.search_in_inventory.convert_message(
+                    ctx.message.content
                 )
-            else:
-                items_dicts = search_results
-                first_dict = items_dicts[0]
-                embed = embed_message(
-                    item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
-                    image_path=f"{self.path_to_inv_images}",
-                    item_dict=first_dict,
+                print(search_query)
+                search_results = self.db.levenshtein_search(
+                    guild_id=ctx.guild.id, search=search_query
                 )
-
-                # TODO
-                # If only one items is found it sends simple embed
-                # message. Needs cleanup.
-                if len(items_dicts) > 1:
-                    view = Pagination(
-                        guild_id=ctx.guild.id, found_items=items_dicts
+                if isinstance(search_results, str):
+                    message = self.search_in_inventory.no_items_message(
+                        search_results
                     )
-                    view.response = await ctx.send(
-                        "I've found these items for you.",
-                        embed=embed[0],
-                        files=embed[1],
-                        view=view,
-                    )
-                elif len(items_dicts) == 1:
                     await ctx.send(
-                        "I've found these items for you.",
-                        embed=embed[0],
-                        files=embed[1],
+                        message[0],
+                        embed=message[1],
+                        file=message[2],
                     )
-        except Exception as e:
-            await handle_command_error(ctx, e)
+                else:
+                    items_dicts = search_results
+                    first_dict = items_dicts[0]
+                    embed = embed_message(
+                        item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
+                        image_path=f"{self.path_to_inv_images}",
+                        item_dict=first_dict,
+                    )
+
+                    # TODO
+                    # If only one items is found it sends simple embed
+                    # message. Needs cleanup.
+                    if len(items_dicts) > 1:
+                        view = Pagination(
+                            guild_id=ctx.guild.id, found_items=items_dicts
+                        )
+                        view.response = await ctx.send(
+                            "I've found these items for you.",
+                            embed=embed[0],
+                            files=embed[1],
+                            view=view,
+                        )
+                    elif len(items_dicts) == 1:
+                        await ctx.send(
+                            "I've found these items for you.",
+                            embed=embed[0],
+                            files=embed[1],
+                        )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
