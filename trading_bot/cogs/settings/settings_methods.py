@@ -1,7 +1,7 @@
 from embed.embed_message import embed_settings_message
 
 
-def channel_settings_embed_message(channel, guild, ctx):
+async def channel_settings_embed_message(channel, guild, ctx):
     channels_info = {
         "listing_channel": ["Listing Channel", "new listings are sent."],
         "search_channel": ["Search Channel", "search results are sent."],
@@ -26,7 +26,7 @@ def channel_settings_embed_message(channel, guild, ctx):
         edit_field=f"`/settings {channel} [channel]`",
         accepted_value=f"A channel's name or ID.",
     )
-    return embed
+    await ctx.send(embed=embed)
 
 
 async def set_channel(ctx, db):
@@ -49,13 +49,12 @@ async def set_channel(ctx, db):
         )
     except:
         guild = db.guild_in_database(guild_id=ctx.guild.id)
-        embed_channel_settings = channel_settings_embed_message(
+        await channel_settings_embed_message(
             channel=modified_channel, guild=guild, ctx=ctx
         )
-        await ctx.send(embed=embed_channel_settings)
 
 
-def item_properties_settings_embed_message(guild):
+async def item_properties_settings_embed_message(guild, ctx):
     item_properties_info = {
         "item_properties": [
             "Item Properties",
@@ -85,7 +84,7 @@ def item_properties_settings_embed_message(guild):
             "It will automatically add `price` property at the end."
         ),
     )
-    return embed
+    await ctx.send(embed=embed)
 
 
 async def define_item_properties(ctx, db):
@@ -98,11 +97,10 @@ async def define_item_properties(ctx, db):
         )
     else:
         guild = db.guild_in_database(guild_id=ctx.guild.id)
-        item_properties_embed = item_properties_settings_embed_message(guild)
-        await ctx.send(embed=item_properties_embed)
+        await item_properties_settings_embed_message(guild=guild, ctx=ctx)
 
 
-def role_can_embed_message(function, guild, ctx):
+async def role_can_embed_message(function, guild, ctx):
     function_info = {
         "can_remove": ["Can Remove", "remove listing from database."],
         "can_search": ["Can Search", "search through listings in database."],
@@ -115,9 +113,7 @@ def role_can_embed_message(function, guild, ctx):
     description = f"Changes the role which can{function_info[function][1]}"
     if guild is not None:
         try:
-            current_value = (
-                f"{ctx.guild.get_channel(guild[function])}: {guild[function]}"
-            )
+            current_value = f"{guild[function]}"
         except KeyError:
             current_value = "Not set yet."
     embed = embed_settings_message(
@@ -127,7 +123,7 @@ def role_can_embed_message(function, guild, ctx):
         edit_field=f"`/settings {function} [role]`",
         accepted_value=f"A role's name or `all`.",
     )
-    return embed
+    await ctx.send(embed=embed)
 
 
 async def role_can(ctx, db):
@@ -141,9 +137,5 @@ async def role_can(ctx, db):
             role=role_assigned,
         )
     else:
-        print("okkk")
         guild = db.guild_in_database(guild_id=ctx.guild.id)
-        embed_role_can_message = role_can_embed_message(
-            function=function, guild=guild, ctx=ctx
-        )
-        await ctx.send(embed=embed_role_can_message)
+        await role_can_embed_message(function=function, guild=guild, ctx=ctx)

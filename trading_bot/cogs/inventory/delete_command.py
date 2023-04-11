@@ -24,7 +24,6 @@ class Remove(commands.Cog):
         self.path_to_inv_images = Path(__file__).parent / "inventory_images"
 
     @commands.command(name="remove")
-    @commands.has_role("Admin")
     async def delete_item(self, ctx):
         """
         Deletes an item from the inventory.
@@ -32,7 +31,11 @@ class Remove(commands.Cog):
         Args:
         ctx (Context): The context in which the 'remove' command was called.
         """
-        try:
+        guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+        remove_role = guild["can_remove"]
+
+        @commands.has_role(remove_role)
+        async def test(self):
             guild = self.db.guild_in_database(guild_id=ctx.guild.id)
             if guild is not None:
                 self.system_channel = guild["guild_system_channel"]
@@ -44,8 +47,8 @@ class Remove(commands.Cog):
                     self.delete_from_inventory.item_has_attachments(
                         guild_id=ctx.guild.id, item_id=item_id
                     )
-        except Exception as e:
-            await handle_command_error(ctx, e)
+
+        await test(self)
 
 
 async def setup(bot):

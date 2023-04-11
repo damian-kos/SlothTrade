@@ -42,8 +42,7 @@ class Settings(commands.Cog):
         elif len(message) == 2:
             await settings_options[message[1]](ctx, self.guild_db)
         else:
-            print("AWAIT NO")
-            settings_options[message[1]](ctx, self.guild_db)
+            await settings_options[message[1]](ctx, self.guild_db)
 
 
 async def setup(bot):

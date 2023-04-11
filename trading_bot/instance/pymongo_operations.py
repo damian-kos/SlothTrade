@@ -150,9 +150,6 @@ class MongoDb:
                 {"$set": {f"{function}": role}},
             )
 
-    def get_function_role(self, guild_id):
-        pass
-
     def get_items_id(self):
         """
         Gets the ID for the next item to be added to the MongoDB.

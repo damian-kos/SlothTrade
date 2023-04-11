@@ -4,8 +4,9 @@ import asyncio
 import discord
 import os
 from pathlib import Path
+import tracemalloc
 
-
+tracemalloc.start()
 load_dotenv()
 
 # "DISCORD-TOKEN" imported from .env
