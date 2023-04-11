@@ -7,6 +7,30 @@ def embed_simple_message(msg_title, msg_desc):
     return embed
 
 
+def embed_settings_message(
+    msg_title, msg_desc, current_value_field, edit_field, accepted_value
+):
+    embed = Embed(
+        title=f"{msg_title} - Settings ",
+        color=Color.yellow(),
+        description=f"{msg_desc}",
+    )
+
+    embed.add_field(
+        name="📄 Current value",
+        value=current_value_field,
+        inline=False,
+    )
+    embed.add_field(name="📝 Edit", value=edit_field, inline=False)
+    embed.add_field(
+        name="☑ Accepted values",
+        value=accepted_value,
+        inline=False,
+    )
+
+    return embed
+
+
 def embed_message(item_id: str, image_path: str, item_dict=None):
     """
     Creates a Discord Embed message containing information about an item and its associated image.
@@ -80,7 +104,7 @@ def embed_text_message(text: str, title: str, description: str, fields=None):
             embed.add_field(
                 name=key,
                 value=value,
-                inline=False,
+                inline=True,
             )
 
     author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")

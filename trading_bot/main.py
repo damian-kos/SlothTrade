@@ -30,8 +30,7 @@ async def main():
         await bot.load_extension("cogs.inventory.delete_command")
         await bot.load_extension("cogs.search.search_command")
         await bot.load_extension("cogs.join_guild.join")
-        await bot.load_extension("cogs.set_channel.set")
-        await bot.load_extension("cogs.configure_product.define_product")
+        await bot.load_extension("cogs.settings.settings")
 
         # Start the bot with the specified token
         await bot.start(TOKEN)

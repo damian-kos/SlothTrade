@@ -1,5 +1,5 @@
 from instance.pymongo_get_database import get_database
-from .levenshtein_algorithm import levenshtein_similarity, fuzz_test
+from .levenshtein_algorithm import fuzz_test
 
 
 class MongoDb:
@@ -126,7 +126,7 @@ class MongoDb:
         if found is not None:
             self.collection_name.update_one(
                 {"_id": guild_id},
-                {"$set": {f"{channel_type}_channel": channel_id}},
+                {"$set": {f"{channel_type}": channel_id}},
             )
 
     def define_item_properties(self, guild_id, item_properties_tuple):
@@ -141,6 +141,17 @@ class MongoDb:
         found = self.guild_in_database(guild_id)
         if found is not None:
             return found["item_properties"]
+
+    def allow_role_to(self, guild_id, function: str, role: str):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$set": {f"{function}": role}},
+            )
+
+    def get_function_role(self, guild_id):
+        pass
 
     def get_items_id(self):
         """
