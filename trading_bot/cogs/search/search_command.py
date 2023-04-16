@@ -37,53 +37,63 @@ class Search(commands.Cog):
             The context of the message.
         """
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
-        if guild is not None:
-            self.search_channel = guild["search_channel"]
-            if ctx.channel.id == self.search_channel:
-                search_query = self.search_in_inventory.convert_message(
-                    ctx.message.content
-                )
-                print(search_query)
-                search_results = self.db.levenshtein_search(
-                    guild_id=ctx.guild.id, search=search_query
-                )
-                if isinstance(search_results, str):
-                    message = self.search_in_inventory.no_items_message(
-                        search_results
-                    )
-                    await ctx.send(
-                        message[0],
-                        embed=message[1],
-                        file=message[2],
-                    )
-                else:
-                    items_dicts = search_results
-                    first_dict = items_dicts[0]
-                    embed = embed_message(
-                        item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
-                        image_path=f"{self.path_to_inv_images}",
-                        item_dict=first_dict,
-                    )
 
-                    # TODO
-                    # If only one items is found it sends simple embed
-                    # message. Needs cleanup.
-                    if len(items_dicts) > 1:
-                        view = Pagination(
-                            guild_id=ctx.guild.id, found_items=items_dicts
-                        )
-                        view.response = await ctx.send(
-                            "I've found these items for you.",
-                            embed=embed[0],
-                            files=embed[1],
-                            view=view,
-                        )
-                    elif len(items_dicts) == 1:
-                        await ctx.send(
-                            "I've found these items for you.",
-                            embed=embed[0],
-                            files=embed[1],
-                        )
+        search_role = guild["can_search"]
+        if search_role != "all":
+            if search_role not in [role.name for role in ctx.author.roles]:
+                await ctx.send(
+                    f"You need to have `{search_role}` role to remove items."
+                )
+                return
+
+        search_channel = guild["search_channel"]
+        if ctx.channel.id != search_channel:
+            channel = ctx.guild.get_channel(search_channel)
+            await ctx.send(f"You can sell only on `{channel.name}`")
+            return
+
+        search_query = self.search_in_inventory.convert_message(
+            ctx.message.content
+        )
+        print(search_query)
+        search_results = self.db.levenshtein_search(
+            guild_id=ctx.guild.id, search=search_query
+        )
+        if isinstance(search_results, str):
+            message = self.search_in_inventory.no_items_message(search_results)
+            await ctx.send(
+                message[0],
+                embed=message[1],
+                file=message[2],
+            )
+        else:
+            items_dicts = search_results
+            first_dict = items_dicts[0]
+            embed = embed_message(
+                item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
+                image_path=f"{self.path_to_inv_images}",
+                item_dict=first_dict,
+            )
+
+            # TODO
+            # If only one items is found it sends simple embed
+            # message. Needs cleanup.
+            if len(items_dicts) > 1:
+                view = Pagination(
+                    guild_id=ctx.guild.id, found_items=items_dicts
+                )
+                view.response = await ctx.send(
+                    "I've found these items for you.",
+                    embed=embed[0],
+                    files=embed[1],
+                    view=view,
+                )
+            elif len(items_dicts) == 1:
+                await ctx.send(
+                    "I've found these items for you.",
+                    embed=embed[0],
+                    files=embed[1],
+                )
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):

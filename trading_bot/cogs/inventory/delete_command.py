@@ -33,16 +33,20 @@ class Remove(commands.Cog):
         """
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
         # if guild is not None:
+
         remove_role = guild["can_remove"]
-        self.system_channel = guild["guild_system_channel"]
-        if ctx.channel.id != self.system_channel:
+        if remove_role != "all":
+            if remove_role not in [role.name for role in ctx.author.roles]:
+                await ctx.send(
+                    f"You need to have `{remove_role}` role to remove items."
+                )
+                return
+
+        system_channel = guild["guild_system_channel"]
+        if ctx.channel.id != system_channel:
             await ctx.send(f"This command works only on `system channel`.")
             return
-        if remove_role not in [role.name for role in ctx.author.roles]:
-            await ctx.send(
-                f"You need to have `{remove_role}` role to remove items."
-            )
-            return
+
         item_id = self.delete_from_inventory.get_id_from_message(
             ctx.message.content
         )

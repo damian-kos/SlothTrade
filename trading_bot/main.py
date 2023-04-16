@@ -21,7 +21,7 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 import logging
 import sys
 
-# logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
 
 async def main():

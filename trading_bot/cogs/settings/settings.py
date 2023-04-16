@@ -7,7 +7,7 @@ from .settings_methods import set_channel, define_item_properties, role_can
 class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.guild_db = MongoDb()
+        self.db = MongoDb()
         self.title = "Settings"
         self.description = (
             "Use the subcommands to change the settings for this server."
@@ -15,6 +15,14 @@ class Settings(commands.Cog):
 
     @commands.command(name="settings")
     async def settings(self, ctx):
+        if not ctx.author.guild_permissions.manage_guild:
+            await ctx.send("You need to have `Manage Server` permission.")
+            return
+        guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+        system_channel = guild["guild_system_channel"]
+        if ctx.channel.id != system_channel:
+            await ctx.send(f"This command works only on `system channel`.")
+            return
         settings_options = {
             "sell_channel": set_channel,
             "search_channel": set_channel,
@@ -43,9 +51,9 @@ class Settings(commands.Cog):
             )
             await ctx.send(embed[0], embed=embed[1])
         elif len(message) == 2:
-            await settings_options[message[1]](ctx, self.guild_db)
+            await settings_options[message[1]](ctx, self.db)
         else:
-            await settings_options[message[1]](ctx, self.guild_db)
+            await settings_options[message[1]](ctx, self.db)
 
 
 async def setup(bot):

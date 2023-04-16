@@ -42,12 +42,6 @@ class Sell(commands.Cog):
             await ctx.send("Item properties not found in database.")
             return
 
-        sell_channel = guild["sell_channel"]
-        if ctx.channel.id != sell_channel:
-            channel = ctx.guild.get_channel(sell_channel)
-            await ctx.send(f"You can sell only on `{channel.name}`")
-            return
-
         sell_role = guild["can_sell"]
         if sell_role != "all":
             if sell_role not in [role.name for role in ctx.author.roles]:
@@ -55,6 +49,12 @@ class Sell(commands.Cog):
                     f"You need to have `{sell_role}` role to sell items."
                 )
                 return
+
+        sell_channel = guild["sell_channel"]
+        if ctx.channel.id != sell_channel:
+            channel = ctx.guild.get_channel(sell_channel)
+            await ctx.send(f"You can sell only on `{channel.name}`")
+            return
 
         self.add_to_inventory = AddToInventory(item_properties=item_properties)
         self.add_to_inventory.convert_message(ctx.message.content)
@@ -65,29 +65,27 @@ class Sell(commands.Cog):
         self.db.add_item(guild_id=ctx.guild.id, item=new_item_dict)
 
         # Download any attachments and save them to the inventory_images directory
-        if ctx.message.attachments:
-            for count, attachment in enumerate(ctx.message.attachments):
-                attachment_filename = self.add_to_inventory.download(
-                    guild_id=ctx.guild.id, count=count
-                )
-                path_to_save = f"{self.path_to_inv_images}{attachment_filename}"
-                await attachment.save(path_to_save)
-
-            # React to the message with a money bag emoji
-            await ctx.message.add_reaction("💷")
-
-            # Generate an embedded message and send it to the specified channel
-            embed = embed_message(
-                item_id=self.add_to_inventory.attachment_filename,
-                image_path=self.path_to_inv_images,
-                item_dict=new_item_dict,
+        if not ctx.message.attachments:
+            await ctx.send("To list an item attach a photo.")
+            return
+        for count, attachment in enumerate(ctx.message.attachments):
+            attachment_filename = self.add_to_inventory.download(
+                guild_id=ctx.guild.id, count=count
             )
-            target_channel = self.bot.get_channel(guild["listing_channel"])
-            await target_channel.send(
-                self.message, embed=embed[0], files=embed[1]
-            )
-        else:
-            await ctx.send("No attachments found.")
+            path_to_save = f"{self.path_to_inv_images}{attachment_filename}"
+            await attachment.save(path_to_save)
+
+        # React to the message with a money bag emoji
+        await ctx.message.add_reaction("💷")
+
+        # Generate an embedded message and send it to the specified channel
+        embed = embed_message(
+            item_id=self.add_to_inventory.attachment_filename,
+            image_path=self.path_to_inv_images,
+            item_dict=new_item_dict,
+        )
+        target_channel = self.bot.get_channel(guild["listing_channel"])
+        await target_channel.send(self.message, embed=embed[0], files=embed[1])
 
 
 async def setup(bot):
