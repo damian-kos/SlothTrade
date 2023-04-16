@@ -32,23 +32,24 @@ class Remove(commands.Cog):
         ctx (Context): The context in which the 'remove' command was called.
         """
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
+        # if guild is not None:
         remove_role = guild["can_remove"]
-
-        @commands.has_role(remove_role)
-        async def test(self):
-            guild = self.db.guild_in_database(guild_id=ctx.guild.id)
-            if guild is not None:
-                self.system_channel = guild["guild_system_channel"]
-                if ctx.channel.id == self.system_channel:
-                    item_id = self.delete_from_inventory.get_id_from_message(
-                        ctx.message.content
-                    )
-                    self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
-                    self.delete_from_inventory.item_has_attachments(
-                        guild_id=ctx.guild.id, item_id=item_id
-                    )
-
-        await test(self)
+        self.system_channel = guild["guild_system_channel"]
+        if ctx.channel.id != self.system_channel:
+            await ctx.send(f"This command works only on `system channel`.")
+            return
+        if remove_role not in [role.name for role in ctx.author.roles]:
+            await ctx.send(
+                f"You need to have `{remove_role}` role to remove items."
+            )
+            return
+        item_id = self.delete_from_inventory.get_id_from_message(
+            ctx.message.content
+        )
+        self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
+        self.delete_from_inventory.item_has_attachments(
+            guild_id=ctx.guild.id, item_id=item_id
+        )
 
 
 async def setup(bot):

@@ -31,6 +31,9 @@ class Settings(commands.Cog):
                 "💰Sell Channel": "`/settings sell_channel`",
                 "👀Search Channel": "`/settings search_channel`",
                 "🗂️Item Properties": "`/settings item_properties`",
+                "📤Can Remove": "`/settings can_remove`",
+                "🔍Can Search": "`/settings can_search`",
+                "📥Can Sell": "`/settings can_sell`",
             }
             embed = embed_text_message(
                 text="",
