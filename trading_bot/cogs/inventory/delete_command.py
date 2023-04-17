@@ -2,8 +2,8 @@ from .delete_from_inventory import DeleteFromInventory
 from discord.ext import commands
 from discord.ext.commands import Bot
 from pathlib import Path
-from error_handler.errors import handle_command_error, handle_error
 from instance.pymongo_operations import MongoDb
+from embed.embed_message import embed_simple_message
 
 
 class Remove(commands.Cog):
@@ -54,6 +54,12 @@ class Remove(commands.Cog):
         self.delete_from_inventory.item_has_attachments(
             guild_id=ctx.guild.id, item_id=item_id
         )
+        embed = embed_simple_message(
+            msg_title=f"Item Removed - ID: {item_id}",
+            msg_desc="Successfuly removed item",
+            rgb_color=(102, 255, 51),
+        )  # green
+        await ctx.send(embed=embed)
 
 
 async def setup(bot):

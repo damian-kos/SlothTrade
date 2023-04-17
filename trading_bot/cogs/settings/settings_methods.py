@@ -1,7 +1,9 @@
 from embed.embed_message import embed_settings_message
 
 
-async def channel_settings_embed_message(channel, guild, ctx):
+async def channel_settings_embed_message(
+    channel, guild, ctx, title_suffix, color
+):
     channels_info = {
         "listing_channel": ["Listing Channel", "new listings are sent."],
         "search_channel": ["Search Channel", "search results are sent."],
@@ -10,7 +12,7 @@ async def channel_settings_embed_message(channel, guild, ctx):
             "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
         ],
     }
-    title = channels_info[channel][0]
+    title = f"{channels_info[channel][0]} - {title_suffix}"
     description = f"Changes the channel where {channels_info[channel][1]}"
     if guild is not None:
         try:
@@ -25,12 +27,14 @@ async def channel_settings_embed_message(channel, guild, ctx):
         current_value_field=current_value,
         edit_field=f"`/settings {channel} [channel]`",
         accepted_value=f"A channel's name or ID.",
+        color=color,
     )
     await ctx.send(embed=embed)
 
 
 async def set_channel(ctx, db):
     modified_channel = ctx.message.content.split(" ")[1]
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
     try:
         channel_to_set = ctx.message.content.split(" ")[-1]
         guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
@@ -47,10 +51,20 @@ async def set_channel(ctx, db):
             channel_id=chosen_channel,
             channel_type=modified_channel,
         )
-    except:
-        guild = db.guild_in_database(guild_id=ctx.guild.id)
         await channel_settings_embed_message(
-            channel=modified_channel, guild=guild, ctx=ctx
+            channel=modified_channel,
+            guild=guild,
+            ctx=ctx,
+            title_suffix="Modified",
+            rgb_color=(102, 255, 51),  # green,
+        )
+    except:
+        await channel_settings_embed_message(
+            channel=modified_channel,
+            guild=guild,
+            ctx=ctx,
+            title_suffix="Settings",
+            rgb_color=(255, 255, 0),  # yellow,
         )
 
 

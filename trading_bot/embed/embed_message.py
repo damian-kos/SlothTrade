@@ -2,18 +2,23 @@ from discord import Embed, File, Color
 from pathlib import Path
 
 
-def embed_simple_message(msg_title, msg_desc):
-    embed = Embed(title=msg_title, color=Color.blurple(), description=msg_desc)
+def embed_simple_message(msg_title, msg_desc, rgb_color):
+    embed = Embed(title=msg_title, color=Color.from_rgb(*rgb_color), description=msg_desc)
     return embed
 
 
 def embed_settings_message(
-    msg_title, msg_desc, current_value_field, edit_field, accepted_value
+    msg_title,
+    msg_desc,
+    current_value_field,
+    edit_field,
+    accepted_value,
+    rgb_color,
 ):
     embed = Embed(
-        title=f"{msg_title} - Settings ",
-        color=Color.yellow(),
-        description=f"{msg_desc}",
+        title=msg_title,
+        color=Color.from_rgb(*rgb_color),
+        description=msg_desc,
     )
 
     embed.add_field(

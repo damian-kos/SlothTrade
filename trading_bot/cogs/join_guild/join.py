@@ -23,7 +23,11 @@ class Join(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         await guild.system_channel.send("I'm ready to go!")
-        embed = embed_simple_message(self.title, self.description)
+        embed = embed_simple_message(
+            msg_title=self.title,
+            mgs_desc=self.description,
+            rgb_color=(88, 101, 242),  # blurple,
+        )
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
                 await channel.send(embed=embed)
