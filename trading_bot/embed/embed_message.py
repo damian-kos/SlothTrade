@@ -2,8 +2,12 @@ from discord import Embed, File, Color
 from pathlib import Path
 
 
-def embed_simple_message(msg_title, msg_desc, rgb_color):
-    embed = Embed(title=msg_title, color=Color.from_rgb(*rgb_color), description=msg_desc)
+def embed_simple_message(msg_title, msg_desc, rgb_color=(255, 255, 0)):
+    embed = Embed(
+        title=msg_title,
+        description=msg_desc,
+        color=Color.from_rgb(*rgb_color),
+    )
     return embed
 
 

@@ -2,7 +2,7 @@ from embed.embed_message import embed_settings_message
 
 
 async def channel_settings_embed_message(
-    channel, guild, ctx, title_suffix, color
+    channel, guild, ctx, title_suffix, rgb_color
 ):
     channels_info = {
         "listing_channel": ["Listing Channel", "new listings are sent."],
@@ -27,7 +27,7 @@ async def channel_settings_embed_message(
         current_value_field=current_value,
         edit_field=f"`/settings {channel} [channel]`",
         accepted_value=f"A channel's name or ID.",
-        color=color,
+        rgb_color=rgb_color,
     )
     await ctx.send(embed=embed)
 
@@ -68,7 +68,10 @@ async def set_channel(ctx, db):
         )
 
 
-async def item_properties_settings_embed_message(guild, ctx):
+async def item_properties_settings_embed_message(
+    guild, ctx, title_suffix, rgb_color
+):
+    # TODO On "Modified" option prevent it from showing old current value
     item_properties_info = {
         "item_properties": [
             "Item Properties",
@@ -80,12 +83,13 @@ async def item_properties_settings_embed_message(guild, ctx):
             ),
         ],
     }
-    title = item_properties_info["item_properties"][0]
+    title = f'{item_properties_info["item_properties"][0]} - {title_suffix}'
     description = item_properties_info["item_properties"][1]
-    if guild is not None:
-        current_value = f"{guild['item_properties']}"
-        if current_value == []:
-            current_value = "Not set yet."
+
+    current_value = f"{guild['item_properties']}"
+    print(current_value)
+    if current_value == []:
+        current_value = "Not set yet."
     embed = embed_settings_message(
         msg_title=title,
         msg_desc=description,
@@ -97,21 +101,38 @@ async def item_properties_settings_embed_message(guild, ctx):
             "`/settings item_properties make model part color item_description`\n"
             "It will automatically add `price` property at the end."
         ),
+        rgb_color=rgb_color,  # yellow
     )
     await ctx.send(embed=embed)
 
 
+import time
+
+
 async def define_item_properties(ctx, db):
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
     item_properties = ctx.message.content.split(" ")[2:]
+    print(guild["item_properties"])
     if item_properties != []:
         item_properties = tuple(column.strip() for column in item_properties)
         db.define_item_properties(
             guild_id=ctx.guild.id,
             item_properties_tuple=item_properties,
         )
+        time.sleep(2)
+        await item_properties_settings_embed_message(
+            guild=guild,
+            ctx=ctx,
+            title_suffix="Modified",
+            rgb_color=(102, 255, 51),
+        )
     else:
-        guild = db.guild_in_database(guild_id=ctx.guild.id)
-        await item_properties_settings_embed_message(guild=guild, ctx=ctx)
+        await item_properties_settings_embed_message(
+            guild=guild,
+            ctx=ctx,
+            title_suffix="Settings",
+            rgb_color=(255, 255, 0),
+        )
 
 
 async def role_can_embed_message(function, guild, ctx):

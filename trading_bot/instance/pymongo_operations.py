@@ -196,11 +196,14 @@ class MongoDb:
             None
         """
         found = self.guild
-        if found is not None:
-            self.collection_name.update_one(
-                {"_id": guild_id},
-                {"$pull": {"items": {"id": item_id}}},
-            )
+        for item in found["items"]:
+            if item_id in list(item.values()):
+                self.collection_name.update_one(
+                    {"_id": guild_id},
+                    {"$pull": {"items": {"id": item_id}}},
+                )
+                return True
+        return False
 
     def __dict_to_string(self, dictionary, item_properties):
         """

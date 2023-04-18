@@ -35,10 +35,10 @@ class Settings(commands.Cog):
         message = ctx.message.content.split(" ")
         if len(message) == 1:
             embed_fields = {
+                "🗂️Item Properties": "`/settings item_properties`",
                 "🗣️Listing Channel": "`/settings listing_channel`",
                 "💰Sell Channel": "`/settings sell_channel`",
                 "👀Search Channel": "`/settings search_channel`",
-                "🗂️Item Properties": "`/settings item_properties`",
                 "📤Can Remove": "`/settings can_remove`",
                 "🔍Can Search": "`/settings can_search`",
                 "📥Can Sell": "`/settings can_sell`",

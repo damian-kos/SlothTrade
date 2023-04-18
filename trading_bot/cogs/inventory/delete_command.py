@@ -50,16 +50,23 @@ class Remove(commands.Cog):
         item_id = self.delete_from_inventory.get_id_from_message(
             ctx.message.content
         )
-        self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
-        self.delete_from_inventory.item_has_attachments(
-            guild_id=ctx.guild.id, item_id=item_id
-        )
-        embed = embed_simple_message(
-            msg_title=f"Item Removed - ID: {item_id}",
-            msg_desc="Successfuly removed item",
-            rgb_color=(102, 255, 51),
-        )  # green
-        await ctx.send(embed=embed)
+        if not self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id):
+            embed = embed_simple_message(
+                msg_title=f"Item Not Found - ID: {item_id}",
+                msg_desc="No item with such ID in database.",
+                rgb_color=(255, 0, 0),
+            )  # red
+            await ctx.send(embed=embed)
+        else:
+            self.delete_from_inventory.item_has_attachments(
+                guild_id=ctx.guild.id, item_id=item_id
+            )
+            embed = embed_simple_message(
+                msg_title=f"Item Removed - ID: {item_id}",
+                msg_desc="Successfuly removed item",
+                rgb_color=(102, 255, 51),
+            )  # green
+            await ctx.send(embed=embed)
 
 
 async def setup(bot):
