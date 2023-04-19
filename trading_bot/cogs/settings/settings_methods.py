@@ -2,7 +2,7 @@ from embed.embed_message import embed_settings_message
 
 
 async def channel_settings_embed_message(
-    channel, guild, ctx, title_suffix, rgb_color
+    channel, db, ctx, title_suffix, rgb_color
 ):
     channels_info = {
         "listing_channel": ["Listing Channel", "new listings are sent."],
@@ -12,6 +12,7 @@ async def channel_settings_embed_message(
             "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
         ],
     }
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
     title = f"{channels_info[channel][0]} - {title_suffix}"
     description = f"Changes the channel where {channels_info[channel][1]}"
     if guild is not None:
@@ -53,7 +54,7 @@ async def set_channel(ctx, db):
         )
         await channel_settings_embed_message(
             channel=modified_channel,
-            guild=guild,
+            db=db,
             ctx=ctx,
             title_suffix="Modified",
             rgb_color=(102, 255, 51),  # green,
@@ -61,7 +62,7 @@ async def set_channel(ctx, db):
     except:
         await channel_settings_embed_message(
             channel=modified_channel,
-            guild=guild,
+            db=db,
             ctx=ctx,
             title_suffix="Settings",
             rgb_color=(255, 255, 0),  # yellow,
@@ -69,9 +70,8 @@ async def set_channel(ctx, db):
 
 
 async def item_properties_settings_embed_message(
-    guild, ctx, title_suffix, rgb_color
+    db, ctx, title_suffix, rgb_color
 ):
-    # TODO On "Modified" option prevent it from showing old current value
     item_properties_info = {
         "item_properties": [
             "Item Properties",
@@ -85,7 +85,9 @@ async def item_properties_settings_embed_message(
     }
     title = f'{item_properties_info["item_properties"][0]} - {title_suffix}'
     description = item_properties_info["item_properties"][1]
-
+    guild = db.guild_in_database(
+        guild_id=ctx.guild.id
+    )  # get refreshed collection within same command
     current_value = f"{guild['item_properties']}"
     print(current_value)
     if current_value == []:
@@ -106,36 +108,31 @@ async def item_properties_settings_embed_message(
     await ctx.send(embed=embed)
 
 
-import time
-
-
 async def define_item_properties(ctx, db):
     guild = db.guild_in_database(guild_id=ctx.guild.id)
     item_properties = ctx.message.content.split(" ")[2:]
-    print(guild["item_properties"])
     if item_properties != []:
         item_properties = tuple(column.strip() for column in item_properties)
         db.define_item_properties(
             guild_id=ctx.guild.id,
             item_properties_tuple=item_properties,
         )
-        time.sleep(2)
         await item_properties_settings_embed_message(
-            guild=guild,
+            db=db,
             ctx=ctx,
             title_suffix="Modified",
             rgb_color=(102, 255, 51),
         )
     else:
         await item_properties_settings_embed_message(
-            guild=guild,
+            db=db,
             ctx=ctx,
             title_suffix="Settings",
             rgb_color=(255, 255, 0),
         )
 
 
-async def role_can_embed_message(function, guild, ctx):
+async def role_can_embed_message(function, db, ctx, title_suffix, rgb_color):
     function_info = {
         "can_remove": ["Can Remove", "remove listing from database."],
         "can_search": ["Can Search", "search through listings in database."],
@@ -144,6 +141,7 @@ async def role_can_embed_message(function, guild, ctx):
             "add new listings to database.",
         ],
     }
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
     title = function_info[function][0]
     description = f"Changes the role which can{function_info[function][1]}"
     if guild is not None:
@@ -152,11 +150,12 @@ async def role_can_embed_message(function, guild, ctx):
         except KeyError:
             current_value = "Not set yet."
     embed = embed_settings_message(
-        msg_title=title,
+        msg_title=f"{title} - {title_suffix}",
         msg_desc=description,
         current_value_field=current_value,
         edit_field=f"`/settings {function} [role]`",
         accepted_value=f"A role's name or `all`.",
+        rgb_color=rgb_color,
     )
     await ctx.send(embed=embed)
 
@@ -164,6 +163,7 @@ async def role_can_embed_message(function, guild, ctx):
 async def role_can(ctx, db):
     message = ctx.message.content.split(" ")
     function = message[1]
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
     if len(message) == 3:
         role_assigned = message[-1]
         db.allow_role_to(
@@ -171,6 +171,18 @@ async def role_can(ctx, db):
             function=function,
             role=role_assigned,
         )
+        await role_can_embed_message(
+            function=function,
+            db=db,
+            ctx=ctx,
+            title_suffix="Modified",
+            rgb_color=(255, 255, 0),  # yellow
+        )
     else:
-        guild = db.guild_in_database(guild_id=ctx.guild.id)
-        await role_can_embed_message(function=function, guild=guild, ctx=ctx)
+        await role_can_embed_message(
+            function=function,
+            db=db,
+            ctx=ctx,
+            title_suffix="Settings",
+            rgb_color=(102, 255, 51),
+        )
