@@ -87,24 +87,30 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
     return embed, [file, author_icon, item_image]
 
 
-def embed_text_message(text: str, title: str, description: str, fields=None):
+def embed_text_message(
+    text: str,
+    title: str,
+    description: str,
+    rgb_color=(255, 255, 0),
+    fields=None,
+):
     """
-    Creates a Discord Embed message containing text, a title, a description, and an optional set of fields.
+        Creates a Discord Embed message containing text, a title, a description, and an optional set of fields.
 
-    Args:
-    - text (str): The text to include in the message.
-    - title (str): The title of the message.
-    - description (str): A description of the message.
-    - fields (dict, optional): A dictionary of key-value pairs to add as fields to the message.
+        Args:
+        - text (str): The text to include in the message.
+        - title (str): The title of the message.
+        - description (str): A description of the message.
+        - fields (dict, optional): A dictionary of key-value pairs to add as fields to the message.
 
-    Returns:
-    - text (str): The original text input.
-    - embed (discord.Embed): The Embed message object containing the text and other details.
-    - author_icon (discord.File): A file object containing the author icon for the message.
-    """
+        Returns:
+        - text (str): The original text input.
+        - embed (discord.Embed): The Embed message object containing the text and other details.
+        - author_icon (discord.File): A file object containing the author icon for the message.
+    a"""
     embed = Embed(
         description=description,
-        color=Color.red(),
+        color=Color.from_rgb(*rgb_color),
         title=title,
     )
 

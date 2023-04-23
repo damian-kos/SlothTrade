@@ -61,7 +61,18 @@ class Sell(commands.Cog):
 
         new_item_id = self.db.get_items_id()
         new_item_id = str(new_item_id).zfill(5)
-        new_item_dict = self.add_to_inventory.create_item_dict(id=new_item_id)
+        new_item_dict = self.add_to_inventory.create_item_dict(
+            id=new_item_id, guild=guild
+        )
+        if not isinstance(new_item_dict, dict):
+            # If new item can't be created it will create and embed
+            # message instead
+            await ctx.send(
+                new_item_dict[0],
+                embed=new_item_dict[1],
+                file=new_item_dict[2],
+            )
+            return
         self.db.add_item(guild_id=ctx.guild.id, item=new_item_dict)
 
         # Download any attachments and save them to the inventory_images directory
@@ -78,7 +89,7 @@ class Sell(commands.Cog):
         # React to the message with a money bag emoji
         await ctx.message.add_reaction("💷")
 
-        # Generate an embedded message and send it to the specified channel
+        # Generate an embedded message and send it to the listing_channel
         embed = embed_message(
             item_id=self.add_to_inventory.attachment_filename,
             image_path=self.path_to_inv_images,

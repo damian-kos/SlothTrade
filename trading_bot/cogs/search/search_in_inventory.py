@@ -81,7 +81,13 @@ class SearchInInventory:
                 "Command example #2": "\n/search Samsung A50\n",
             }
 
-            embed = embed_text_message(found_items, title, description, fields)
+            embed = embed_text_message(
+                text=found_items,
+                title=title,
+                description=description,
+                rgb_color=(255, 0, 0),
+                fields=fields,
+            )
             return embed
 
     def items_found(self, items_list):

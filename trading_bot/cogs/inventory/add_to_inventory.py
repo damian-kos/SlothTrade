@@ -2,6 +2,7 @@ import pandas as pd
 from pathlib import Path
 from discord.ext import commands
 from collections import namedtuple
+from embed.embed_message import embed_text_message
 
 
 class AddToInventory:
@@ -83,7 +84,7 @@ class AddToInventory:
             self.price = self.split_message[-1]
             self.split_message.pop()
 
-    def create_item_dict(self, id) -> dict:
+    def create_item_dict(self, id, guild=None) -> dict:
         """
         Generates a new unique ID for the item, assigns the values of
         make, model, part, color, description, and price to instance variables,
@@ -91,12 +92,33 @@ class AddToInventory:
         """
         self.new_id = id
         self.__price_handler()
-        item = self.Item(
-            *self.split_message,
-            self.price,
-        )
-        new_row = {"id": id, **item._asdict()}
-        return new_row
+        try:
+            item = self.Item(
+                *self.split_message,
+                self.price,
+            )
+            new_row = {"id": id, **item._asdict()}
+            return new_row
+        except TypeError:
+            item_properties = guild["item_properties"]
+            print(item_properties)
+            command_syntax = f"\n/sell {' '.join([f'<{item}>' for item in item_properties])}\n"
+            command_example = f"\n/sell {' '.join([f'property{i}' for i in range(len(item_properties))])}\n"
+            title = "Your command has too few item properties."
+            description = "Check if your command is correct."
+            fields = {
+                "Command syntax to get best results": command_syntax,
+                "Command example #1": command_example,
+            }
+
+            embed = embed_text_message(
+                text="",
+                title=title,
+                description=description,
+                rgb_color=(255, 0, 0),
+                fields=fields,
+            )
+            return embed
 
     def download(self, guild_id, count):
         """
