@@ -58,7 +58,7 @@ class Pagination(discord.ui.View):
             image_path=self.path_to_inv_images,
             item_dict=current_item_dict,
         )
-
+        await interaction.re
         await interaction.response.edit_message(
             embed=embed[0],
             attachments=embed[1],

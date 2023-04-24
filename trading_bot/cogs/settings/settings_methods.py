@@ -1,8 +1,9 @@
 from embed.embed_message import embed_settings_message
+from embed.embed_confirmation import Confirmation
 
 
 async def channel_settings_embed_message(
-    channel, db, ctx, title_suffix, rgb_color
+    channel, db, ctx, title_suffix, rgb_color, test_view=None
 ):
     channels_info = {
         "listing_channel": ["Listing Channel", "new listings are sent."],
@@ -15,6 +16,7 @@ async def channel_settings_embed_message(
     guild = db.guild_in_database(guild_id=ctx.guild.id)
     title = f"{channels_info[channel][0]} - {title_suffix}"
     description = f"Changes the channel where {channels_info[channel][1]}"
+
     if guild is not None:
         try:
             current_value = (
@@ -30,43 +32,83 @@ async def channel_settings_embed_message(
         accepted_value=f"A channel's name or ID.",
         rgb_color=rgb_color,
     )
-    await ctx.send(embed=embed)
+    if test_view is not None:
+        last_item_in_message = ctx.message.content.split(" ")[-1]
+        channel_id = channel_to_set_id(last_item_in_message, ctx=ctx)
+
+        test_view.response = await ctx.send(
+            f"Are you sure you want https://discord.com/channels/{ctx.guild.id}/{channel_id} as the new {channel}?",
+            view=test_view,
+            delete_after=20,
+        )
+        await test_view.wait()
+        if test_view.value:
+            print("YESS")
+            print(f"{ctx.guild.id}, {channel_id}, {channel}")
+            db.set_channel(
+                guild_id=ctx.guild.id,
+                channel_id=channel_id,
+                channel_type=channel,
+            )
+            print("ok")
+            get_target_channel = ctx.guild.get_channel(channel_id)
+            await get_target_channel.send(
+                f"This channel will be used as the {channel}."
+            )
+            await ctx.send(
+                f"✅ https://discord.com/channels/{ctx.guild.id}/{channel_id} will now be used as the {channel}."
+            )
+        else:
+            print("No")
+    else:
+        await ctx.send(embed=embed)
+
+
+def channel_to_set_id(last_item_of_message, ctx):
+    channel_to_set = last_item_of_message
+    guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
+    if channel_to_set.isdigit():
+        if int(channel_to_set) in guild_channels_id:
+            chosen_channel = int(channel_to_set)
+    else:
+        for channel in ctx.guild.channels:
+            if str(channel) == channel_to_set:
+                chosen_channel = channel.id
+                break
+    return chosen_channel
 
 
 async def set_channel(ctx, db):
     modified_channel = ctx.message.content.split(" ")[1]
-    guild = db.guild_in_database(guild_id=ctx.guild.id)
-    try:
-        channel_to_set = ctx.message.content.split(" ")[-1]
-        guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
-        if channel_to_set.isdigit():
-            if int(channel_to_set) in guild_channels_id:
-                chosen_channel = int(channel_to_set)
-        else:
-            for channel in ctx.guild.channels:
-                if str(channel) == channel_to_set:
-                    chosen_channel = channel.id
-                    break
-        db.set_channel(
-            guild_id=ctx.guild.id,
-            channel_id=chosen_channel,
-            channel_type=modified_channel,
-        )
+    # guild = db.guild_in_database(guild_id=ctx.guild.id)
+    if len(ctx.message.content.split(" ")) == 3:
+        # channel_to_set = ctx.message.content.split(" ")[-1]
+        # guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
+        # if channel_to_set.isdigit():
+        #     if int(channel_to_set) in guild_channels_id:
+        #         chosen_channel = int(channel_to_set)
+        # else:
+        #     for channel in ctx.guild.channels:
+        #         if str(channel) == channel_to_set:
+        #             chosen_channel = channel.id
+        #             break
+        print("xddd")
         await channel_settings_embed_message(
             channel=modified_channel,
             db=db,
             ctx=ctx,
             title_suffix="Modified",
             rgb_color=(102, 255, 51),  # green,
+            test_view=Confirmation(),
         )
-    except:
-        await channel_settings_embed_message(
-            channel=modified_channel,
-            db=db,
-            ctx=ctx,
-            title_suffix="Settings",
-            rgb_color=(255, 255, 0),  # yellow,
-        )
+        return
+    await channel_settings_embed_message(
+        channel=modified_channel,
+        db=db,
+        ctx=ctx,
+        title_suffix="Settings",
+        rgb_color=(255, 255, 0),  # yellow,
+    )
 
 
 async def item_properties_settings_embed_message(
