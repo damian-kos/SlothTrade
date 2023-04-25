@@ -14,7 +14,7 @@ class Join(commands.Cog):
         self.db = MongoDb()
         self.title = "Trading Bot has joined the server"
         self.description = (
-            "Hi, I've benn added to this server.\n"
+            "Hi, I've been added to this server.\n"
             "Some things you should know:"
             "‣ You can configure me using: `/settings`\n"
             "During that you will setup your database, sell, listing and search channels.\n"

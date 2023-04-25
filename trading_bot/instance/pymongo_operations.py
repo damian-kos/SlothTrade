@@ -129,6 +129,14 @@ class MongoDb:
                 {"$set": {f"{channel_type}": channel_id}},
             )
 
+    def webhook_url(self, guild_id, webhook, webhook_url):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$set": {f"{webhook}": webhook_url}},
+            )
+
     def define_item_properties(self, guild_id, item_properties_tuple):
         found = self.guild_in_database(guild_id)
         if found is not None:

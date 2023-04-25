@@ -1,10 +1,9 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
+from webhook.create_webhook import create_webhook
 
 
-async def channel_settings_embed_message(
-    channel, db, ctx, title_suffix, rgb_color, test_view=None
-):
+async def channel_settings_return_messages(channel, db, ctx, test_view=None):
     channels_info = {
         "listing_channel": [
             "Listing Channel",
@@ -21,9 +20,14 @@ async def channel_settings_embed_message(
             "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
             "Trading Sell",
         ],
+        "logging": [
+            "Logging Channel",
+            "server log messages are sent.",
+            "Trading Logging",
+        ],
     }
     guild = db.guild_in_database(guild_id=ctx.guild.id)
-    title = f"{channels_info[channel][0]} - {title_suffix}"
+    title = f"{channels_info[channel][0]} - Settings"
     description = f"Changes the channel where {channels_info[channel][1]}"
 
     if guild is not None:
@@ -33,18 +37,10 @@ async def channel_settings_embed_message(
             )
         except KeyError:
             current_value = "Not set yet."
-    embed = embed_settings_message(
-        msg_title=title,
-        msg_desc=description,
-        current_value_field=current_value,
-        edit_field=f"`/settings {channel} [channel]`",
-        accepted_value=f"A channel's name or ID.",
-        rgb_color=rgb_color,
-    )
+
     if test_view is not None:
         last_item_in_message = ctx.message.content.split(" ")[-1]
         channel_id = channel_to_set_id(last_item_in_message, ctx=ctx)
-
         test_view.response = await ctx.send(
             f"Are you sure you want https://discord.com/channels/{ctx.guild.id}/{channel_id} as the new {channel}?",
             view=test_view,
@@ -52,33 +48,15 @@ async def channel_settings_embed_message(
         )
         await test_view.wait()
         if test_view.value:
-            channel_for_web = ctx.guild.get_channel(channel_id)
-            webhooks = await ctx.guild.webhooks()
-            webhooks_names = [web.name for web in webhooks]
-            new_webhook_name = channels_info[channel][2]
-            if new_webhook_name not in webhooks_names:
-                await channel_for_web.create_webhook(name=new_webhook_name)
-            elif new_webhook_name in webhooks_names:
-                for webhook in webhooks:
-                    if new_webhook_name == webhook.name:
-                        await webhook.delete()
-                        await channel_for_web.create_webhook(
-                            name=new_webhook_name
-                        )
-
-            webhooks = await ctx.guild.webhooks()
-            for web in webhooks:
-                print(web)
-
+            await create_webhook(
+                ctx=ctx,
+                channel_id=channel_id,
+                new_webhook_name=channels_info[channel][2],
+            )
             db.set_channel(
                 guild_id=ctx.guild.id,
                 channel_id=channel_id,
                 channel_type=channel,
-            )
-            print("ok")
-            get_target_channel = ctx.guild.get_channel(channel_id)
-            await get_target_channel.send(
-                f"This channel will be used as the {channel}."
             )
             await ctx.send(
                 f"✅ https://discord.com/channels/{ctx.guild.id}/{channel_id} will now be used as the {channel}."
@@ -86,6 +64,14 @@ async def channel_settings_embed_message(
         else:
             print("No")
     else:
+        embed = embed_settings_message(
+            msg_title=title,
+            msg_desc=description,
+            current_value_field=current_value,
+            edit_field=f"`/settings {channel} [channel]`",
+            accepted_value=f"A channel's name or ID.",
+            rgb_color=(255, 255, 0),  # yellow,
+        )
         await ctx.send(embed=embed)
 
 
@@ -105,34 +91,18 @@ def channel_to_set_id(last_item_of_message, ctx):
 
 async def set_channel(ctx, db):
     modified_channel = ctx.message.content.split(" ")[1]
-    # guild = db.guild_in_database(guild_id=ctx.guild.id)
     if len(ctx.message.content.split(" ")) == 3:
-        # channel_to_set = ctx.message.content.split(" ")[-1]
-        # guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
-        # if channel_to_set.isdigit():
-        #     if int(channel_to_set) in guild_channels_id:
-        #         chosen_channel = int(channel_to_set)
-        # else:
-        #     for channel in ctx.guild.channels:
-        #         if str(channel) == channel_to_set:
-        #             chosen_channel = channel.id
-        #             break
-        print("xddd")
-        await channel_settings_embed_message(
+        await channel_settings_return_messages(
             channel=modified_channel,
             db=db,
             ctx=ctx,
-            title_suffix="Modified",
-            rgb_color=(102, 255, 51),  # green,
             test_view=Confirmation(),
         )
         return
-    await channel_settings_embed_message(
+    await channel_settings_return_messages(
         channel=modified_channel,
         db=db,
         ctx=ctx,
-        title_suffix="Settings",
-        rgb_color=(255, 255, 0),  # yellow,
     )
 
 

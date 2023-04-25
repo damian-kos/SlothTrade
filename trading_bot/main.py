@@ -31,6 +31,7 @@ async def main():
         await bot.load_extension("cogs.inventory.delete_command")
         await bot.load_extension("cogs.search.search_command")
         await bot.load_extension("cogs.join_guild.join")
+        await bot.load_extension("webhook.logging_webhook")
         await bot.load_extension("cogs.settings.settings")
         await bot.load_extension("cogs.test.test")
 
