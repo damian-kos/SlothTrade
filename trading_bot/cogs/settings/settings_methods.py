@@ -6,11 +6,20 @@ async def channel_settings_embed_message(
     channel, db, ctx, title_suffix, rgb_color, test_view=None
 ):
     channels_info = {
-        "listing_channel": ["Listing Channel", "new listings are sent."],
-        "search_channel": ["Search Channel", "search results are sent."],
+        "listing_channel": [
+            "Listing Channel",
+            "new listings are sent.",
+            "Trading Listing",
+        ],
+        "search_channel": [
+            "Search Channel",
+            "search results are sent.",
+            "Trading Search",
+        ],
         "sell_channel": [
             "Sell Channel",
             "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
+            "Trading Sell",
         ],
     }
     guild = db.guild_in_database(guild_id=ctx.guild.id)
@@ -43,8 +52,24 @@ async def channel_settings_embed_message(
         )
         await test_view.wait()
         if test_view.value:
-            print("YESS")
-            print(f"{ctx.guild.id}, {channel_id}, {channel}")
+            channel_for_web = ctx.guild.get_channel(channel_id)
+            webhooks = await ctx.guild.webhooks()
+            webhooks_names = [web.name for web in webhooks]
+            new_webhook_name = channels_info[channel][2]
+            if new_webhook_name not in webhooks_names:
+                await channel_for_web.create_webhook(name=new_webhook_name)
+            elif new_webhook_name in webhooks_names:
+                for webhook in webhooks:
+                    if new_webhook_name == webhook.name:
+                        await webhook.delete()
+                        await channel_for_web.create_webhook(
+                            name=new_webhook_name
+                        )
+
+            webhooks = await ctx.guild.webhooks()
+            for web in webhooks:
+                print(web)
+
             db.set_channel(
                 guild_id=ctx.guild.id,
                 channel_id=channel_id,
