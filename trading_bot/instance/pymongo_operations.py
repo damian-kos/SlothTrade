@@ -225,6 +225,12 @@ class MongoDb:
                 return True
         return False
 
+    def delete_all_items(self, guild_id):
+        self.collection_name.update_one(
+            {"_id": guild_id},
+            {"$unset": {"items": ""}},
+        )
+
     def __dict_to_string(self, dictionary, item_properties):
         """
         Converts a dictionary to a string with the format 'make model part color description price'

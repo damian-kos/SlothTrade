@@ -61,3 +61,16 @@ class DeleteFromInventory:
             if str(guild_id) in file and item_id in file:
                 __file_path = os.path.join(self.__path_to_inv_images, file)
                 os.remove(__file_path)
+
+    def delete_all_images(self, guild_id):
+        """
+        Deletes all images which belong to certain guild from the inventory_images directory."
+        Returns
+        -------
+        None
+        """
+        files = os.listdir(self.__path_to_inv_images)
+        for file in files:
+            if str(guild_id) in file:
+                __file_path = os.path.join(self.__path_to_inv_images, file)
+                os.remove(__file_path)

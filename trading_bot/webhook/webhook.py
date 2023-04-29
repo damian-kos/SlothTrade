@@ -11,10 +11,10 @@ async def channel_set_message(url, username, message):
         await webhook.send(message, username=username)
 
 
-async def guild_role_create_log(url, username, embed_message):
+async def guild_role_create_log(url, embed_message):
     async with aiohttp.ClientSession() as session:
         webhook = Webhook.from_url(
             url,
             session=session,
         )
-        await webhook.send(embed=embed_message, username=username)
+        await webhook.send(embed=embed_message)

@@ -159,9 +159,9 @@ async def item_properties_settings_embed_message(
         "item_properties": [
             "Item Properties",
             (
-                "Changes the way your items are stored,"
+                "Changes the way your items are stored, "
                 "be careful once you setup it you shouldn't change it later.\n "
-                "Unless you delete all your items from database.\n"
+                "If so, you need to delete all your items from database.\n"
                 "Items will always be having `price` property so you don't need to add this."
             ),
         ],

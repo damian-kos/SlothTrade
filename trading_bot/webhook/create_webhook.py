@@ -59,7 +59,6 @@ async def create_webhook_(
         await guild_role_create_log(
             url=logging_webhook_url,
             embed_message=embed,
-            username=new_webhook_name,
         )
 
 
@@ -89,5 +88,24 @@ async def delete_webhook_(ctx, webhook_name_to_delete, guild):
             await guild_role_create_log(
                 url=logging_webhook_url,
                 embed_message=embed,
-                username=webhook_name_to_delete,
             )
+
+
+async def removed_everything_from_database(ctx, guild):
+    logging_webhook_url = guild["logging_webhook"]
+    if logging_webhook_url:
+        embed = Embed(
+            title=f"All items and images from database were removed ",
+            description=f"That's it they are gone",
+            color=Color.from_rgb(255, 0, 0),
+            timestamp=datetime.now(),
+        )
+        embed.set_footer(
+            icon_url=ctx.author.avatar.url,
+            text=f"{ctx.author}",
+        )
+
+        await guild_role_create_log(
+            url=logging_webhook_url,
+            embed_message=embed,
+        )

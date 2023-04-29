@@ -21,7 +21,10 @@ class Settings(commands.Cog):
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
         system_channel = guild["guild_system_channel"]
         if ctx.channel.id != system_channel:
-            await ctx.send(f"This command works only on `system channel`.")
+            system_channel_href = (
+                f"https://discord.com/channels/{ctx.guild.id}/{system_channel}"
+            )
+            await ctx.send(f"This command works only on {system_channel_href}.")
             return
         settings_options = {
             "sell_channel": channel_settings,
