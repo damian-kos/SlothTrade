@@ -25,7 +25,7 @@ class Join(commands.Cog):
         await guild.system_channel.send("I'm ready to go!")
         embed = embed_simple_message(
             msg_title=self.title,
-            mgs_desc=self.description,
+            msg_desc=self.description,
             rgb_color=(88, 101, 242),  # blurple,
         )
         for channel in guild.text_channels:

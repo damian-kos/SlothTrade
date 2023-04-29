@@ -1,6 +1,6 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
-from webhook.create_webhook import create_webhook
+from webhook.create_webhook import create_webhook_
 
 
 async def channel_settings_return_messages(channel, db, ctx, test_view=None):
@@ -18,7 +18,7 @@ async def channel_settings_return_messages(channel, db, ctx, test_view=None):
         "sell_channel": [
             "Sell Channel",
             "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
-            "Trading Sell",
+            "Trading Selling",
         ],
         "logging": [
             "Logging Channel",
@@ -48,7 +48,7 @@ async def channel_settings_return_messages(channel, db, ctx, test_view=None):
         )
         await test_view.wait()
         if test_view.value:
-            await create_webhook(
+            await create_webhook_(
                 ctx=ctx,
                 channel_id=channel_id,
                 new_webhook_name=channels_info[channel][2],
@@ -125,8 +125,12 @@ async def item_properties_settings_embed_message(
     guild = db.guild_in_database(
         guild_id=ctx.guild.id
     )  # get refreshed collection within same command
-    current_value = f"{guild['item_properties']}"
-    print(current_value)
+    current_value = guild["item_properties"]
+    # print(guild)
+
+    print(type(current_value))
+    print(len(current_value))
+    print(current_value == [])
     if current_value == []:
         current_value = "Not set yet."
     embed = embed_settings_message(

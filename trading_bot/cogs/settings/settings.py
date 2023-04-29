@@ -52,8 +52,6 @@ class Settings(commands.Cog):
                 fields=embed_fields,
             )
             await ctx.send(embed[0], embed=embed[1])
-        # elif len(message) == 2:
-        #     await settings_options[message[1]](ctx, self.db)
         else:
             await settings_options[message[1]](ctx, self.db)
 
