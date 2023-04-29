@@ -1,9 +1,9 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
-from webhook.create_webhook import create_webhook_
+from webhook.create_webhook import create_webhook_, delete_webhook_
 
 
-async def channel_settings_return_messages(channel, db, ctx, test_view=None):
+async def channel_settings_modify_message(channel, db, ctx, test_view=None):
     channels_info = {
         "listing_channel": [
             "Listing Channel",
@@ -27,52 +27,98 @@ async def channel_settings_return_messages(channel, db, ctx, test_view=None):
         ],
     }
     guild = db.guild_in_database(guild_id=ctx.guild.id)
-    title = f"{channels_info[channel][0]} - Settings"
-    description = f"Changes the channel where {channels_info[channel][1]}"
-
-    if guild is not None:
-        try:
-            current_value = (
-                f"{ctx.guild.get_channel(guild[channel])}: {guild[channel]}"
-            )
-        except KeyError:
-            current_value = "Not set yet."
 
     if test_view is not None:
         last_item_in_message = ctx.message.content.split(" ")[-1]
-        channel_id = channel_to_set_id(last_item_in_message, ctx=ctx)
+        if "disable" in last_item_in_message:
+            message = f"Are you sure you want to disable the set {channel}?"
+        else:
+            channel_id = channel_to_set_id(last_item_in_message, ctx=ctx)
+            channel_link = (
+                f"https://discord.com/channels/{ctx.guild.id}/{channel_id}"
+            )
+            message = (
+                f"Are you sure you want {channel_link} as the new {channel}?"
+            )
         test_view.response = await ctx.send(
-            f"Are you sure you want https://discord.com/channels/{ctx.guild.id}/{channel_id} as the new {channel}?",
+            content=message,
             view=test_view,
             delete_after=20,
         )
         await test_view.wait()
         if test_view.value:
-            await create_webhook_(
-                ctx=ctx,
-                channel_id=channel_id,
-                new_webhook_name=channels_info[channel][2],
-            )
-            db.set_channel(
-                guild_id=ctx.guild.id,
-                channel_id=channel_id,
-                channel_type=channel,
-            )
-            await ctx.send(
-                f"✅ https://discord.com/channels/{ctx.guild.id}/{channel_id} will now be used as the {channel}."
-            )
+            print(last_item_in_message)
+            match last_item_in_message:
+                case "disable":
+                    await disable_webhook(
+                        channel=channel,
+                        ctx=ctx,
+                        channels_info=channels_info,
+                        db=db,
+                        guild=guild,
+                    )
+
+                case other:
+                    await create_or_edit_webhook(
+                        channel=channel,
+                        ctx=ctx,
+                        channel_id=channel_id,
+                        channels_info=channels_info,
+                        channel_link=channel_link,
+                        db=db,
+                        guild=guild,
+                    )
+
         else:
             print("No")
     else:
+        if guild is not None:
+            try:
+                current_value = f"https://discord.com/channels/{ctx.guild.id}/{guild[channel]}"
+            except KeyError:
+                current_value = "Not set yet."
+        title = f"{channels_info[channel][0]} - Settings"
+        description = f"Changes the channel where {channels_info[channel][1]}"
         embed = embed_settings_message(
             msg_title=title,
             msg_desc=description,
             current_value_field=current_value,
-            edit_field=f"`/settings {channel} [channel]`",
-            accepted_value=f"A channel's name or ID.",
+            edit_field=f"`/settings {channel} [channel/disable]`",
+            accepted_value=f"A channel's name or ID, or `disable`",
             rgb_color=(255, 255, 0),  # yellow,
         )
         await ctx.send(embed=embed)
+
+
+async def disable_webhook(channel, ctx, channels_info, db, guild):
+    await delete_webhook_(
+        ctx=ctx,
+        webhook_name_to_delete=channels_info[channel][2],
+        guild=guild,
+    )
+    db.delete_channel(
+        guild_id=ctx.guild.id,
+        channel_type=channel,
+    )
+    await ctx.send(f"✅ The {channel} was disabled.")
+
+
+async def create_or_edit_webhook(
+    channel, ctx, channel_id, channels_info, channel_link, db, guild
+):
+    await create_webhook_(
+        ctx=ctx,
+        channel_id=channel_id,
+        new_webhook_name=channels_info[channel][2],
+        guild=guild,
+        channel_link=channel_link,
+    )
+    db.set_channel(
+        guild_id=ctx.guild.id,
+        channel_id=channel_id,
+        channel_type=channel,
+    )
+    await ctx.send(f"✅ {channel_link} will now be used as the {channel}.")
 
 
 def channel_to_set_id(last_item_of_message, ctx):
@@ -89,18 +135,18 @@ def channel_to_set_id(last_item_of_message, ctx):
     return chosen_channel
 
 
-async def set_channel(ctx, db):
-    modified_channel = ctx.message.content.split(" ")[1]
+async def channel_settings(ctx, db):
+    channel_to_modify = ctx.message.content.split(" ")[1]
     if len(ctx.message.content.split(" ")) == 3:
-        await channel_settings_return_messages(
-            channel=modified_channel,
+        await channel_settings_modify_message(
+            channel=channel_to_modify,
             db=db,
             ctx=ctx,
             test_view=Confirmation(),
         )
         return
-    await channel_settings_return_messages(
-        channel=modified_channel,
+    await channel_settings_modify_message(
+        channel=channel_to_modify,
         db=db,
         ctx=ctx,
     )
@@ -126,11 +172,6 @@ async def item_properties_settings_embed_message(
         guild_id=ctx.guild.id
     )  # get refreshed collection within same command
     current_value = guild["item_properties"]
-    # print(guild)
-
-    print(type(current_value))
-    print(len(current_value))
-    print(current_value == [])
     if current_value == []:
         current_value = "Not set yet."
     embed = embed_settings_message(

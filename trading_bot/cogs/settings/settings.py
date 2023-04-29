@@ -1,7 +1,7 @@
 from discord.ext import commands
 from embed.embed_message import embed_text_message
 from instance.pymongo_operations import MongoDb
-from .settings_methods import set_channel, define_item_properties, role_can
+from .settings_methods import channel_settings, define_item_properties, role_can
 
 
 class Settings(commands.Cog):
@@ -24,10 +24,10 @@ class Settings(commands.Cog):
             await ctx.send(f"This command works only on `system channel`.")
             return
         settings_options = {
-            "sell_channel": set_channel,
-            "search_channel": set_channel,
-            "listing_channel": set_channel,
-            "logging": set_channel,
+            "sell_channel": channel_settings,
+            "search_channel": channel_settings,
+            "listing_channel": channel_settings,
+            "logging": channel_settings,
             "item_properties": define_item_properties,
             "can_sell": role_can,
             "can_remove": role_can,

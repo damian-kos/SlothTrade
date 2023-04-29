@@ -76,7 +76,7 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
 
     embed.set_thumbnail(url="attachment://thumbnail.png")
     embed.set_author(
-        name="Trading Bot",
+        name="Trade Octopus",
         icon_url="attachment://author_icon.png",
         url="https://www.google.com",
     )
@@ -124,7 +124,7 @@ def embed_text_message(
 
     author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")
     embed.set_author(
-        name="Trading Bot",
+        name="Trade Octopus",
         icon_url="attachment://author_icon.png",
         url="https://www.google.com",
     )

@@ -102,12 +102,19 @@ class AddToInventory:
         except TypeError:
             item_properties = guild["item_properties"]
             print(item_properties)
-            command_syntax = f"\n/sell {' '.join([f'<{item}>' for item in item_properties])}\n"
+            properties_are = (
+                f"{' '.join([f'`{item}`' for item in item_properties])}"
+            )
+            command_syntax = f"\n/sell {' '.join([f'`{item}`' for item in item_properties])}\n"
             command_example = f"\n/sell {' '.join([f'property{i}' for i in range(len(item_properties))])}\n"
-            title = "Your command has too few item properties."
-            description = "Check if your command is correct."
+            title = "To list an item you need to follow this server's listing scheme."
+            description = (
+                "Follow the rule and check if your command is correct."
+            )
             fields = {
-                "Command syntax to get best results": command_syntax,
+                "Item listed on this server should have": f"{len(item_properties)} properties",
+                "These properties are": properties_are,
+                "Command syntax to list an item": command_syntax,
                 "Command example #1": command_example,
             }
 

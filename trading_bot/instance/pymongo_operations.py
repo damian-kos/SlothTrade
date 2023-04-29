@@ -129,6 +129,18 @@ class MongoDb:
                 {"$set": {f"{channel_type}": channel_id}},
             )
 
+    def delete_channel(self, guild_id, channel_type=""):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$unset": {f"{channel_type}": ""}},
+            )
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$unset": {f"{channel_type}_webhook": ""}},
+            )
+
     def webhook_url(self, guild_id, webhook, webhook_url):
         found = self.guild_in_database(guild_id)
         if found is not None:

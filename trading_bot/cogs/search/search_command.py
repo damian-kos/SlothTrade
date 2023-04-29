@@ -49,7 +49,7 @@ class Search(commands.Cog):
         search_channel = guild["search_channel"]
         if ctx.channel.id != search_channel:
             channel = ctx.guild.get_channel(search_channel)
-            await ctx.send(f"You can sell only on `{channel.name}`")
+            await ctx.send(f"You can search only on `{channel.name}`")
             return
 
         search_query = self.search_in_inventory.convert_message(
