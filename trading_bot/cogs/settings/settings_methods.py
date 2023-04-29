@@ -34,6 +34,11 @@ async def channel_settings_modify_message(channel, db, ctx, test_view=None):
             message = f"Are you sure you want to disable the set {channel}?"
         else:
             channel_id = channel_to_set_id(last_item_in_message, ctx=ctx)
+            if channel_id is None:
+                await ctx.send(
+                    f"❌ I couldn't find that channel, are you sure it exists?"
+                )
+                return
             channel_link = (
                 f"https://discord.com/channels/{ctx.guild.id}/{channel_id}"
             )
@@ -124,15 +129,18 @@ async def create_or_edit_webhook(
 def channel_to_set_id(last_item_of_message, ctx):
     channel_to_set = last_item_of_message
     guild_channels_id = tuple(channel.id for channel in ctx.guild.channels)
-    if channel_to_set.isdigit():
-        if int(channel_to_set) in guild_channels_id:
-            chosen_channel = int(channel_to_set)
-    else:
-        for channel in ctx.guild.channels:
-            if str(channel) == channel_to_set:
-                chosen_channel = channel.id
-                break
-    return chosen_channel
+    try:
+        if channel_to_set.isdigit():
+            if int(channel_to_set) in guild_channels_id:
+                chosen_channel = int(channel_to_set)
+        else:
+            for channel in ctx.guild.channels:
+                if str(channel) == channel_to_set:
+                    chosen_channel = channel.id
+                    break
+        return chosen_channel
+    except UnboundLocalError:
+        return None
 
 
 async def channel_settings(ctx, db):
