@@ -7,3 +7,4 @@ test/
 **/logo
 *.log
 .txt
+known_bugs.txt

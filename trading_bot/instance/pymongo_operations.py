@@ -157,6 +157,14 @@ class MongoDb:
                 {"$set": {f"item_properties": item_properties_tuple}},
             )
 
+    def define_item_properties_descriptions(self, guild_id, descriptions_tuple):
+        found = self.guild_in_database(guild_id)
+        if found is not None:
+            self.collection_name.update_one(
+                {"_id": guild_id},
+                {"$set": {f"item_params_description": descriptions_tuple}},
+            )
+
     def get_item_properties(self, guild_id):
         found = self.guild_in_database(guild_id)
         if found is not None:
@@ -182,9 +190,12 @@ class MongoDb:
         """
         found = self.guild
         if found is not None:
-            if len(found["items"]) == 0:
-                return "1"  # If no items in db, start with 00001
-            return int(found["items"][-1]["id"]) + 1
+            try:
+                if len(found["items"]) == 0:
+                    return "1"  # If no items in db, start with 00001
+                return int(found["items"][-1]["id"]) + 1
+            except:
+                return "1"
 
     def add_item(self, guild_id, item):
         """

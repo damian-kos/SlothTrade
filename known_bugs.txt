@@ -1,5 +1,0 @@
-1. ### When sell with less arguments than item_properties should send an information message with correct syntax.
-    1.1 Find better wording instead of "property1"..."property-n"
-2. View like pagination but for accepting for confirming users input. Simple "Yes" & "No"
-3. For roles setup check if role exists first.
-4. For /sell listing_channel [channel] etc. add a check if channel exists.

@@ -1,6 +1,7 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
 from webhook.create_webhook import create_webhook_, delete_webhook_
+from ..inventory.add.sell_command import create_sell_app_command
 
 
 async def channel_settings_modify_message(channel, db, ctx, test_view=None):
@@ -17,7 +18,7 @@ async def channel_settings_modify_message(channel, db, ctx, test_view=None):
         ],
         "sell_channel": [
             "Sell Channel",
-            "you can post a new item. Once posted it will be sent on a 'listing_channel'.",
+            "you can post a new item. Once posted it will also be sent on a 'listing_channel'.",
             "Trading Selling",
         ],
         "logging": [
@@ -170,7 +171,7 @@ async def item_properties_settings_embed_message(
                 "Changes the way your items are stored, "
                 "be careful once you setup it you shouldn't change it later.\n "
                 "If so, you need to delete all your items from database.\n"
-                "Items will always be having `price` property so you don't need to add this."
+                "Items will always be having an optional `price` paramater so you don't need to add this.\n"
             ),
         ],
     }
@@ -179,33 +180,51 @@ async def item_properties_settings_embed_message(
     guild = db.guild_in_database(
         guild_id=ctx.guild.id
     )  # get refreshed collection within same command
-    current_value = guild["item_properties"]
-    if current_value == []:
+    try:
+        current_value = guild["item_properties"]
+    except KeyError:
         current_value = "Not set yet."
     embed = embed_settings_message(
         msg_title=title,
         msg_desc=description,
         current_value_field=current_value,
-        edit_field=f"`/settings item_properties [property1] [property2]",
+        edit_field=f"`/settings item_properties - [paramater1:description1] - [paramater2:description2]`",
         accepted_value=(
-            f"Single word property like `title` or `release_date`.\n"
+            f"Paramater with it's description: \n `title:What is the title?` or `release:Release date?`.\n"
+            "`:` is necessary to run this command. Between `parameter:description` there should be no whitespaces.\n"
+            "`-` should be placed after `item_properties` keyword, and after every `parameter:description` pair\n"
             "If you set it like:\n"
-            "`/settings item_properties make model part color item_description`\n"
-            "It will automatically add `price` property at the end."
+            "`/settings item_properties - model:description - color:description`\n"
+            "It will automatically add optional `price` paramater at the end.\n"
+            "That means when user will be creating a new listing he may add a price or not.\n"
         ),
         rgb_color=rgb_color,  # yellow
     )
+
     await ctx.send(embed=embed)
 
 
 async def define_item_properties(ctx, db):
     guild = db.guild_in_database(guild_id=ctx.guild.id)
-    item_properties = ctx.message.content.split(" ")[2:]
+    parameter_names = {}
+    parameter_descriptions = {}
+    item_properties = ctx.message.content.split("-")[1:]
     if item_properties != []:
-        item_properties = tuple(column.strip() for column in item_properties)
+        for count, item in enumerate(item_properties):
+            parameter_name, param_description = item.strip().split(":")
+            parameter_names[f"param{count}"] = parameter_name
+            parameter_descriptions[f"param{count}"] = param_description
+            item_properties_to_db = tuple(v for v in parameter_names.values())
+            item_params_description_to_db = tuple(
+                v for v in parameter_descriptions.values()
+            )
         db.define_item_properties(
             guild_id=ctx.guild.id,
-            item_properties_tuple=item_properties,
+            item_properties_tuple=item_properties_to_db,
+        )
+        db.define_item_properties_descriptions(
+            guild_id=ctx.guild.id,
+            descriptions_tuple=item_params_description_to_db,
         )
         await item_properties_settings_embed_message(
             db=db,
@@ -213,6 +232,13 @@ async def define_item_properties(ctx, db):
             title_suffix="Modified",
             rgb_color=(102, 255, 51),
         )
+
+        new_command = create_sell_app_command(
+            ctx.bot, parameter_names, parameter_descriptions
+        )
+        guild_to_sync = ctx.guild
+        ctx.bot.tree.add_command(new_command, guild=guild_to_sync)
+        sync = await ctx.bot.tree.sync(guild=guild_to_sync)
     else:
         await item_properties_settings_embed_message(
             db=db,
@@ -233,7 +259,7 @@ async def role_can_embed_message(function, db, ctx, title_suffix, rgb_color):
     }
     guild = db.guild_in_database(guild_id=ctx.guild.id)
     title = function_info[function][0]
-    description = f"Changes the role which can{function_info[function][1]}"
+    description = f"Changes the role which can {function_info[function][1]}"
     if guild is not None:
         try:
             current_value = f"{guild[function]}"

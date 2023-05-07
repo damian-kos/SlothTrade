@@ -1,4 +1,4 @@
-from .delete_from_inventory import DeleteFromInventory
+from .remove_from_inventory import RemoveFromInventory
 from discord.ext import commands
 from discord.ext.commands import Bot
 from pathlib import Path
@@ -17,18 +17,20 @@ class Remove(commands.Cog):
 
         Attributes:
         bot (Bot): The Discord bot that this cog is associated with.
-        delete_from_inventory (DeleteFromInventory): An instance of the DeleteFromInventory class.
+        remove_from_inventory (RemoveFromInventory): An instance of the RemoveFromInventory class.
         path_to_inv_images (Path): A pathlib Path object representing the directory where inventory images are stored.
         """
         self.bot = bot
         self.db = MongoDb()
-        self.delete_from_inventory = DeleteFromInventory()
-        self.path_to_inv_images = Path(__file__).parent / "inventory_images"
+        self.remove_from_inventory = RemoveFromInventory()
+        self.path_to_inv_images = (
+            Path(__file__).parent / "remove" / "inventory_images"
+        )
 
     @commands.command(name="remove")
     async def delete_item(self, ctx):
         """
-        Deletes an item from the inventory.
+        Removes an item from the inventory.
 
         Args:
         ctx (Context): The context in which the 'remove' command was called.
@@ -49,7 +51,7 @@ class Remove(commands.Cog):
             await ctx.send(f"This command works only on `system channel`.")
             return
 
-        item_id = self.delete_from_inventory.get_id_from_message(
+        item_id = self.remove_from_inventory.get_id_from_message(
             ctx.message.content
         )
         if item_id == "everything":
@@ -65,7 +67,7 @@ class Remove(commands.Cog):
             await confirmation_view.wait()
             if confirmation_view.value:
                 self.db.delete_all_items(guild_id=ctx.guild.id)
-                self.delete_from_inventory.delete_all_images(
+                self.remove_from_inventory.delete_all_images(
                     guild_id=ctx.guild.id
                 )
                 await ctx.send("✅ All items removed from database.")
@@ -78,7 +80,7 @@ class Remove(commands.Cog):
             )  # red
             await ctx.send(embed=embed)
         else:
-            self.delete_from_inventory.item_has_attachments(
+            self.remove_from_inventory.item_has_attachments(
                 guild_id=ctx.guild.id, item_id=item_id
             )
             embed = embed_simple_message(

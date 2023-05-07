@@ -27,8 +27,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 async def main():
     async with bot:
         # Load custom extensions for the bot
-        await bot.load_extension("cogs.inventory.sell_command")
-        await bot.load_extension("cogs.inventory.delete_command")
+        await bot.load_extension("cogs.inventory.remove.remove_command")
         await bot.load_extension("cogs.search.search_command")
         await bot.load_extension("cogs.join_guild.join")
         await bot.load_extension("webhook.logging_webhook")

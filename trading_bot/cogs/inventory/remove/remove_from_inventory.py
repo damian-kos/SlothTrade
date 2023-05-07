@@ -4,7 +4,7 @@ import os
 from discord.ext import commands
 
 
-class DeleteFromInventory:
+class RemoveFromInventory:
     def __init__(self) -> None:
         """
         A class for managing the inventory.csv file and deleting items from the inventory.
@@ -25,11 +25,13 @@ class DeleteFromInventory:
         get_id_from_message(discord_message):
             Parses the item ID from a given Discord message.
         delete():
-            Deletes an item from the inventory.csv file.
+            Removes an item from the inventory.csv file.
         item_has_attachments():
-            Deletes the corresponding image file for an item from the inventory_images directory.
+            Removes the corresponding image file for an item from the inventory_images directory.
         """
-        self.__path_to_inv_images = Path(__file__).parent / "inventory_images"
+        self.__path_to_inv_images = (
+            Path(__file__).parent.parent / "inventory_images"
+        )
 
     def get_id_from_message(self, discord_message: str) -> str:
         """
@@ -50,7 +52,7 @@ class DeleteFromInventory:
 
     def item_has_attachments(self, guild_id, item_id):
         """
-        Deletes the corresponding image file for an item from the inventory_images directory.
+        Removes the corresponding image file for an item from the inventory_images directory.
 
         Returns
         -------
@@ -64,7 +66,7 @@ class DeleteFromInventory:
 
     def delete_all_images(self, guild_id):
         """
-        Deletes all images which belong to certain guild from the inventory_images directory."
+        Removes all images which belong to certain guild from the inventory_images directory."
         Returns
         -------
         None

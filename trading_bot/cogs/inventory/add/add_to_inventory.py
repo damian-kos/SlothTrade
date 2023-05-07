@@ -25,11 +25,12 @@ class AddToInventory:
         Download an attachment and return its filename.
     """
 
-    def __init__(self, item_properties) -> None:
+    def __init__(self, item_properties=None) -> None:
         """
         Initializes the instance of the class.
         """
-        self.Item = namedtuple("Item", (*item_properties, "price"))
+        if item_properties is not None:
+            self.Item = namedtuple("Item", (*item_properties, "price"))
         self.current_item_properties = item_properties
 
     def format_item_text(self, count, item) -> str:
@@ -74,31 +75,38 @@ class AddToInventory:
         for count, item in enumerate(self.split_message):
             self.split_message[count] = self.format_item_text(count, item)
 
-    def __price_handler(self):
+    def __price_handler(self, item_values):
         """
         Checks if given message as a list is longer than item's
         attribute. Assigns price value if so.
         """
         self.price = ""
-        if len(self.split_message) == len(self.current_item_properties) + 1:
-            self.price = self.split_message[-1]
-            self.split_message.pop()
+        if len(self.item_values) == len(self.current_item_properties) + 1:
+            if self.item_values[-1] is not None:
+                self.price = self.item_values[-1]
+                self.item_values.pop()
+            if self.item_values[-1] is None:
+                self.item_values.pop()
 
-    def create_item_dict(self, id, guild=None) -> dict:
+    def create_item_dict(self, id, item_values, guild=None) -> dict:
         """
         Generates a new unique ID for the item, assigns the values of
         make, model, part, color, description, and price to instance variables,
         and creates a new dictionary with these values.
         """
+        self.item_values = item_values
         self.new_id = id
-        self.__price_handler()
+        self.__price_handler(self.item_values)
+        print(f"NEW_ID_CREATE_ITEM_DICT: {self.new_id}")
+        print(f"PRICE_CREATE_ITEM_DICT:{self.price}")
+        print([*self.item_values])
         try:
             item = self.Item(
-                *self.split_message,
+                *item_values,
                 self.price,
             )
-            new_row = {"id": id, **item._asdict()}
-            return new_row
+            self.new_row = {"id": id, **item._asdict()}
+            return self.new_row
         except TypeError:
             item_properties = guild["item_properties"]
             print(item_properties)
@@ -127,7 +135,7 @@ class AddToInventory:
             )
             return embed
 
-    def download(self, guild_id, count):
+    def download(self, guild_id):
         """
         Download an attachment and return its filename.
 
@@ -143,9 +151,7 @@ class AddToInventory:
         """
         self.attachment_filename = f"/{guild_id}_{self.new_id}"
         # If the count is not zero, add the count to the file name.
-        if count == 0:
-            self.attachment_filename += ".png"
-        # Otherwise append .png for the single file.
-        else:
-            self.attachment_filename += f"_{count}.png"
+
+        self.attachment_filename += ".png"
+
         return self.attachment_filename
