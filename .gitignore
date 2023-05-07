@@ -8,3 +8,5 @@ test/
 *.log
 .txt
 known_bugs.txt
+discord.pygit
+deprecated/
