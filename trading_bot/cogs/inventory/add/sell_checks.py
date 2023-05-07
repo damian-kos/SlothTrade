@@ -1,18 +1,20 @@
 from pathlib import Path
 from embed.embed_message import embed_message
 from instance.pymongo_operations import MongoDb
+from webhook.webhook import new_listing_message
+from datetime import datetime
 
 
 async def has_permissions_to_sell(interaction):
     db = MongoDb()
     guild = db.guild_in_database(guild_id=interaction.guild_id)
     sell_role = guild["can_sell"]
-    if sell_role != "all":
+    if sell_role != "everyone":
         if sell_role not in [role.name for role in interaction.user.roles]:
             await interaction.response.send_message(
                 f"You need to have `{sell_role}` role to sell items."
             )
-            return
+            return False
 
 
 async def channel_check(interaction):
@@ -24,7 +26,7 @@ async def channel_check(interaction):
         await interaction.response.send_message(
             f"You can sell only on `{channel.name}`"
         )
-        return
+        return False
 
 
 async def inventory_add(add_to_inv, interaction, item_values):
@@ -33,10 +35,15 @@ async def inventory_add(add_to_inv, interaction, item_values):
     add_to = add_to_inv
     new_item_id = db.get_items_id()
     new_item_id = str(new_item_id).zfill(5)
+    user_id = interaction.user.id
+    user_avatar = interaction.user.avatar.url
     new_item_dict = add_to.create_item_dict(
-        id=new_item_id, guild=guild, item_values=item_values
+        id=new_item_id,
+        guild=guild,
+        item_values=item_values,
+        user_id=user_id,
+        user_avatar=user_avatar,
     )
-    print(new_item_dict)
     if not isinstance(new_item_dict, dict):
         # If new item can't be created it will create and embed
         # message instead
@@ -72,6 +79,14 @@ async def send_new_listing(add_to_inv, interaction):
         item_id=add_to_inv.attachment_filename,
         image_path=path_to_inv_images,
         item_dict=add_to_inv.new_row,
+        interaction=interaction,
     )
-    target_channel = interaction.client.get_channel(guild["listing_channel"])
-    await target_channel.send("Just landed", embed=embed[0], files=embed[1])
+    # target_channel = interaction.client.get_channel(guild["listing_channel"])
+    listing_webhook_url = guild["listing_channel_webhook"]
+    await new_listing_message(
+        url=listing_webhook_url,
+        message="Just landed!",
+        embed_message=embed[0],
+        file=embed[1],
+    )
+    # await target_channel.send("Just landed", embed=embed[0], files=embed[1])

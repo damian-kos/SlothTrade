@@ -43,7 +43,13 @@ async def create_webhook_(
     await channel_set_message(
         message=message, url=new_webhook.url, username=new_webhook_name
     )
-    logging_webhook_url = guild["logging_webhook"]
+    if new_webhook_name == "Trading Logging":
+        logging_webhook_url = new_webhook.url
+    else:
+        try:
+            logging_webhook_url = guild["logging_webhook"]
+        except KeyError:
+            return
     if logging_webhook_url:
         embed = Embed(
             title=f"{new_webhook_name} webhook created",
@@ -72,23 +78,27 @@ async def delete_webhook_(ctx, webhook_name_to_delete, guild):
         webhook_index = webhooks_names.index(webhook_name_to_delete)
         webhook_to_delete = webhooks[webhook_index]
         await webhook_to_delete.delete()
-        logging_webhook_url = guild["logging_webhook"]
-        if logging_webhook_url:
-            embed = Embed(
-                title=f"{webhook_name_to_delete} webhook removed",
-                description=f"The {channel_to_remove} was removed",
-                color=Color.from_rgb(88, 101, 242),
-                timestamp=datetime.now(),
-            )
-            embed.set_footer(
-                icon_url=ctx.author.avatar.url,
-                text=f"{ctx.author}",
-            )
+        if webhook_name_to_delete != "Trading Logging":
+            try:
+                logging_webhook_url = guild["logging_webhook"]
+            except KeyError:
+                return
+            if logging_webhook_url:
+                embed = Embed(
+                    title=f"{webhook_name_to_delete} webhook removed",
+                    description=f"The {channel_to_remove} was removed",
+                    color=Color.from_rgb(88, 101, 242),
+                    timestamp=datetime.now(),
+                )
+                embed.set_footer(
+                    icon_url=ctx.author.avatar.url,
+                    text=f"{ctx.author}",
+                )
 
-            await guild_role_create_log(
-                url=logging_webhook_url,
-                embed_message=embed,
-            )
+                await guild_role_create_log(
+                    url=logging_webhook_url,
+                    embed_message=embed,
+                )
 
 
 async def removed_everything_from_database(ctx, guild):

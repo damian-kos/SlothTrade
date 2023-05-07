@@ -39,7 +39,7 @@ class Search(commands.Cog):
         guild = self.db.guild_in_database(guild_id=ctx.guild.id)
 
         search_role = guild["can_search"]
-        if search_role != "all":
+        if search_role != "everyone":
             if search_role not in [role.name for role in ctx.author.roles]:
                 await ctx.send(
                     f"You need to have `{search_role}` role to remove items."
@@ -73,11 +73,9 @@ class Search(commands.Cog):
                 item_id=(f"{ctx.guild.id}_{first_dict['id']}.png"),
                 image_path=f"{self.path_to_inv_images}",
                 item_dict=first_dict,
+                ctx=ctx,
             )
 
-            # TODO
-            # If only one items is found it sends simple embed
-            # message. Needs cleanup.
             if len(items_dicts) > 1:
                 view = Pagination(
                     guild_id=ctx.guild.id, found_items=items_dicts
@@ -94,20 +92,6 @@ class Search(commands.Cog):
                     embed=embed[0],
                     files=embed[1],
                 )
-
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
-        """
-        An error handler for the search command.
-
-        Parameters
-        ----------
-        ctx : Context
-            The context of the message.
-        error : Exception
-            The error that occurred.
-        """
-        await handle_error(ctx, error)
 
 
 async def setup(bot):

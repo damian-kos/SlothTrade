@@ -31,8 +31,6 @@ class Logging(commands.Cog):
                         current_guild["item_params_description"]
                     )
                 }
-                print(parameter_names)
-                print(parameter_descriptions)
                 new_command = create_sell_app_command(
                     bot=self.bot,
                     dict_with_names=parameter_names,

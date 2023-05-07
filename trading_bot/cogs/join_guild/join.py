@@ -15,14 +15,13 @@ class Join(commands.Cog):
         self.title = "Trade Octopus Bot has joined the server"
         self.description = (
             "Hi, I've been added to this server.\n"
-            "Some things you should know:"
+            "Some things you should know:\n"
             "‣ You can configure me using: `/settings`\n"
             "During that you will setup your database, sell, listing and search channels.\n"
         )
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
-        await guild.system_channel.send("I'm ready to go!")
         embed = embed_simple_message(
             msg_title=self.title,
             msg_desc=self.description,

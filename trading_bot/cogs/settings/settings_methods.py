@@ -1,7 +1,10 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
 from webhook.create_webhook import create_webhook_, delete_webhook_
+from webhook.webhook import guild_role_create_log
 from ..inventory.add.sell_command import create_sell_app_command
+from discord import Embed, Color
+from datetime import datetime
 
 
 async def channel_settings_modify_message(channel, db, ctx, test_view=None):
@@ -53,7 +56,6 @@ async def channel_settings_modify_message(channel, db, ctx, test_view=None):
         )
         await test_view.wait()
         if test_view.value:
-            print(last_item_in_message)
             match last_item_in_message:
                 case "disable":
                     await disable_webhook(
@@ -106,7 +108,7 @@ async def disable_webhook(channel, ctx, channels_info, db, guild):
         guild_id=ctx.guild.id,
         channel_type=channel,
     )
-    await ctx.send(f"✅ The {channel} was disabled.")
+    await ctx.send(f"✅ The {channel} is disabled.")
 
 
 async def create_or_edit_webhook(
@@ -119,12 +121,12 @@ async def create_or_edit_webhook(
         guild=guild,
         channel_link=channel_link,
     )
+    await ctx.send(f"✅ {channel_link} will now be used as the {channel}.")
     db.set_channel(
         guild_id=ctx.guild.id,
         channel_id=channel_id,
         channel_type=channel,
     )
-    await ctx.send(f"✅ {channel_link} will now be used as the {channel}.")
 
 
 def channel_to_set_id(last_item_of_message, ctx):
@@ -170,6 +172,7 @@ async def item_properties_settings_embed_message(
             (
                 "Changes the way your items are stored, "
                 "be careful once you setup it you shouldn't change it later.\n "
+                "Activates **/sell** command.\n"
                 "If so, you need to delete all your items from database.\n"
                 "Items will always be having an optional `price` paramater so you don't need to add this.\n"
             ),
@@ -181,7 +184,11 @@ async def item_properties_settings_embed_message(
         guild_id=ctx.guild.id
     )  # get refreshed collection within same command
     try:
-        current_value = guild["item_properties"]
+        current_keys = guild["item_properties"]
+        current_descriptions = guild["item_params_description"]
+        current_value = "\n".join(
+            f"`{k}:{v}`" for k, v in zip(current_keys, current_descriptions)
+        )
     except KeyError:
         current_value = "Not set yet."
     embed = embed_settings_message(
@@ -191,9 +198,9 @@ async def item_properties_settings_embed_message(
         edit_field=f"`/settings item_properties - [paramater1:description1] - [paramater2:description2]`",
         accepted_value=(
             f"Paramater with it's description: \n `title:What is the title?` or `release:Release date?`.\n"
-            "`:` is necessary to run this command. Between `parameter:description` there should be no whitespaces.\n"
-            "`-` should be placed after `item_properties` keyword, and after every `parameter:description` pair\n"
-            "If you set it like:\n"
+            "\n`:` is necessary to run this command. Between `parameter:description` there should be no whitespaces.\n"
+            "\n`-` should be placed after `item_properties` keyword, and after every `parameter:description` pair\n"
+            "\nIf you set it like:\n"
             "`/settings item_properties - model:description - color:description`\n"
             "It will automatically add optional `price` paramater at the end.\n"
             "That means when user will be creating a new listing he may add a price or not.\n"
@@ -226,19 +233,67 @@ async def define_item_properties(ctx, db):
             guild_id=ctx.guild.id,
             descriptions_tuple=item_params_description_to_db,
         )
-        await item_properties_settings_embed_message(
-            db=db,
-            ctx=ctx,
-            title_suffix="Modified",
-            rgb_color=(102, 255, 51),
+        description = "\n".join(
+            f"> `{item.strip()}`" for item in item_properties
         )
+        confirmation_message = (
+            f"> ‼️ You are about to change item_properties. ‼️\n"
+            f"> ‼️ If still have listed items you will need to delete them.\n"
+            f"> ‼️ This will also change your **/sell** command.\n"
+            f"  {description}\n"
+            f"> ‼️ Do you want to continue?"
+        )
+        confirmation_view = Confirmation()
+        confirmation_view.response = await ctx.send(
+            content=confirmation_message,
+            view=confirmation_view,
+            delete_after=20,
+        )
+        await confirmation_view.wait()
+        if confirmation_view.value:
+            try:
+                logging_webhook_url = guild["logging_webhook"]
+                embed = Embed(
+                    title="Item properties and it's descpritions updated",
+                    description=f"{description}\n You will receive separate message about **/sell** command activation.",
+                    color=Color.from_rgb(88, 101, 242),
+                    timestamp=datetime.now(),
+                )
+                embed.set_footer(
+                    icon_url=ctx.author.avatar.url,
+                    text=f"{ctx.author}",
+                )
+                await guild_role_create_log(
+                    url=logging_webhook_url, embed_message=embed
+                )
+            except:
+                await ctx.send("✅ /sell command updated and available.")
 
-        new_command = create_sell_app_command(
-            ctx.bot, parameter_names, parameter_descriptions
-        )
-        guild_to_sync = ctx.guild
-        ctx.bot.tree.add_command(new_command, guild=guild_to_sync)
-        sync = await ctx.bot.tree.sync(guild=guild_to_sync)
+            guild_to_sync = ctx.guild
+            sell_command = ctx.bot.tree.get_command("sell", guild=guild_to_sync)
+            if sell_command:
+                ctx.bot.tree.remove_command("sell", guild=guild_to_sync)
+                await ctx.bot.tree.sync(guild=guild_to_sync)
+            new_command = create_sell_app_command(
+                ctx.bot, parameter_names, parameter_descriptions
+            )
+            ctx.bot.tree.add_command(new_command, guild=guild_to_sync)
+            await ctx.bot.tree.sync(guild=guild_to_sync)
+            embed = Embed(
+                title="/sell command is active",
+                description="Type `/sell` to use it",
+                color=Color.from_rgb(88, 101, 242),
+                timestamp=datetime.now(),
+            )
+            embed.set_footer(
+                icon_url=ctx.author.avatar.url,
+                text=f"{ctx.author}",
+            )
+            await guild_role_create_log(
+                url=logging_webhook_url, embed_message=embed
+            )
+        else:
+            return
     else:
         await item_properties_settings_embed_message(
             db=db,
@@ -249,7 +304,7 @@ async def define_item_properties(ctx, db):
 
 
 async def role_can_embed_message(function, db, ctx, title_suffix, rgb_color):
-    function_info = {
+    roles = {
         "can_remove": ["Can Remove", "remove listing from database."],
         "can_search": ["Can Search", "search through listings in database."],
         "can_sell": [
@@ -258,8 +313,8 @@ async def role_can_embed_message(function, db, ctx, title_suffix, rgb_color):
         ],
     }
     guild = db.guild_in_database(guild_id=ctx.guild.id)
-    title = function_info[function][0]
-    description = f"Changes the role which can {function_info[function][1]}"
+    title = roles[function][0]
+    description = f"Changes the role which can {roles[function][1]}"
     if guild is not None:
         try:
             current_value = f"{guild[function]}"
@@ -269,8 +324,8 @@ async def role_can_embed_message(function, db, ctx, title_suffix, rgb_color):
         msg_title=f"{title} - {title_suffix}",
         msg_desc=description,
         current_value_field=current_value,
-        edit_field=f"`/settings {function} [role]`",
-        accepted_value=f"A role's name or `all`.",
+        edit_field=f"`/settings {function} [role/everyone]`",
+        accepted_value=f"A role's name or `everyone`.",
         rgb_color=rgb_color,
     )
     await ctx.send(embed=embed)
@@ -282,18 +337,60 @@ async def role_can(ctx, db):
     guild = db.guild_in_database(guild_id=ctx.guild.id)
     if len(message) == 3:
         role_assigned = message[-1]
-        db.allow_role_to(
-            guild_id=ctx.guild.id,
-            function=function,
-            role=role_assigned,
+        if role_assigned == "everyone":
+            confirmation_message = (
+                f"Are you sure you want that `{role_assigned}` {function}?"
+            )
+        else:
+            guild_roles = tuple(role.name for role in ctx.guild.roles)
+            if role_assigned not in guild_roles:
+                await ctx.send(
+                    f"❌ I couldn't find that role, are you sure it exists."
+                )
+                return
+            role_index = next(
+                count
+                for count, role in enumerate(ctx.guild.roles)
+                if role.name == role_assigned
+            )
+            role = ctx.guild.roles[role_index]
+            confirmation_message = (
+                f"Are you sure you want that {role.mention} role {function}"
+            )
+        confirmation_view = Confirmation()
+        confirmation_view.response = await ctx.send(
+            content=confirmation_message,
+            view=confirmation_view,
+            delete_after=20,
         )
-        await role_can_embed_message(
-            function=function,
-            db=db,
-            ctx=ctx,
-            title_suffix="Modified",
-            rgb_color=(255, 255, 0),  # yellow
-        )
+        await confirmation_view.wait()
+        if confirmation_view.value:
+            db.allow_role_to(
+                guild_id=ctx.guild.id,
+                function=function,
+                role=role_assigned,
+            )
+            await ctx.send(f"✅ The {role.mention} from now {function}")
+            try:
+                logging_webhook_url = guild["logging_webhook"]
+                embed = Embed(
+                    title=f"{function.capitalize()} role updated",
+                    description=f"{role.mention} is changed to a role which {function}.",
+                    color=Color.from_rgb(88, 101, 242),
+                    timestamp=datetime.now(),
+                )
+                embed.set_footer(
+                    icon_url=ctx.author.avatar.url,
+                    text=f"{ctx.author}",
+                )
+                await guild_role_create_log(
+                    url=logging_webhook_url,
+                    embed_message=embed,
+                )
+            except:
+                return
+        else:
+            return
     else:
         await role_can_embed_message(
             function=function,

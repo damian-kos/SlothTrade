@@ -27,9 +27,11 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             price: Optional[str],
         ):
             add_to = AddToInventory(item_properties=[*dict_with_names.values()])
-            await has_permissions_to_sell(interaction=interaction)
+            if await has_permissions_to_sell(interaction=interaction) == False:
+                return
 
-            await channel_check(interaction=interaction)
+            if await channel_check(interaction=interaction) == False:
+                return
 
             await inventory_add(
                 add_to_inv=add_to,
@@ -61,9 +63,11 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             price: Optional[str],
         ):
             add_to = AddToInventory(item_properties=[*dict_with_names.values()])
-            await has_permissions_to_sell(interaction=interaction)
+            if await has_permissions_to_sell(interaction=interaction) == False:
+                return
 
-            await channel_check(interaction=interaction)
+            if await channel_check(interaction=interaction) == False:
+                return
 
             await inventory_add(
                 add_to_inv=add_to,
@@ -96,14 +100,16 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             price: Optional[str],
         ):
             add_to = AddToInventory(item_properties=[*dict_with_names.values()])
-            await has_permissions_to_sell(interaction=interaction)
+            if await has_permissions_to_sell(interaction=interaction) == False:
+                return
 
-            await channel_check(interaction=interaction)
+            if await channel_check(interaction=interaction) == False:
+                return
 
             await inventory_add(
                 add_to_inv=add_to,
                 interaction=interaction,
-                item_values=[param0, param1, param2, price],
+                item_values=[param0, param1, param2, param3, price],
             )
             await check_attachment(
                 add_to_inv=add_to, interaction=interaction, attachment=image

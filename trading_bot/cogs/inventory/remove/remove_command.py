@@ -39,21 +39,39 @@ class Remove(commands.Cog):
         # if guild is not None:
 
         remove_role = guild["can_remove"]
-        if remove_role != "all":
+        if remove_role != "everyone":
             if remove_role not in [role.name for role in ctx.author.roles]:
                 await ctx.send(
                     f"You need to have `{remove_role}` role to remove items."
                 )
                 return
-
         system_channel = guild["guild_system_channel"]
         if ctx.channel.id != system_channel:
-            await ctx.send(f"This command works only on `system channel`.")
+            await ctx.send(
+                f"This command works only on `system channel`.", ephemeral=True
+            )
             return
 
         item_id = self.remove_from_inventory.get_id_from_message(
             ctx.message.content
         )
+        item_dict = self.db.get_item(id=item_id, guild_id=ctx.guild.id)
+        if not item_dict:
+            embed = embed_simple_message(
+                msg_title=f"Item Not Found - ID: {item_id}",
+                msg_desc="No item with such ID in database.",
+                rgb_color=(255, 0, 0),
+            )  # red
+            await ctx.send(embed=embed)
+            return
+        if (
+            item_dict["user_id"] != ctx.author.id
+            and not ctx.author.guild_permissions.manage_guild
+        ):
+            await ctx.send(
+                "You can't delete an item which wasn't listed by you."
+            )
+            return
         if item_id == "everything":
             if not ctx.author.guild_permissions.manage_guild:
                 await ctx.send("You need to have `Manage Server` permission.")
@@ -72,14 +90,8 @@ class Remove(commands.Cog):
                 )
                 await ctx.send("✅ All items removed from database.")
                 await removed_everything_from_database(ctx=ctx, guild=guild)
-        elif not self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id):
-            embed = embed_simple_message(
-                msg_title=f"Item Not Found - ID: {item_id}",
-                msg_desc="No item with such ID in database.",
-                rgb_color=(255, 0, 0),
-            )  # red
-            await ctx.send(embed=embed)
         else:
+            self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
             self.remove_from_inventory.item_has_attachments(
                 guild_id=ctx.guild.id, item_id=item_id
             )

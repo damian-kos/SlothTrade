@@ -40,7 +40,9 @@ def embed_settings_message(
     return embed
 
 
-def embed_message(item_id: str, image_path: str, item_dict=None):
+def embed_message(
+    item_id: str, image_path: str, item_dict=None, interaction=None, ctx=None
+):
     """
     Creates a Discord Embed message containing information about an item and its associated image.
 
@@ -54,18 +56,21 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
     - files (List[discord.File]): A list of file objects containing the thumbnail, author icon, and item image.
     """
     if item_dict is not None:
-        item_title = list(item_dict.values())[1]
-        item_subtitle = list(item_dict.values())[2]
+        list(item_dict.values())
+        item_title = list(item_dict.keys())[1]
+        item_subtitle = list(item_dict.values())[1]
 
         embed = Embed(
+            title=item_title.capitalize(),
             description=item_subtitle.capitalize(),
             color=Color.green(),
-            title=item_title.capitalize(),
+            timestamp=item_dict["date"],
         )
 
         for key, value in list(item_dict.items())[2:]:
             if key == "price" and value == "":
                 break
+
             key = key.capitalize()
             value = value.capitalize()
             embed.add_field(name=key, value=value, inline=True)
@@ -82,7 +87,18 @@ def embed_message(item_id: str, image_path: str, item_dict=None):
     )
     embed.set_image(url="attachment://item_image.png")
     footer_text = item_id.replace(".png", "").split("_")[1]
-    embed.set_footer(text=footer_text)
+    if interaction:
+        user = interaction.guild.get_member(item_dict["user_id"])
+        if user.avatar:
+            user_avatar = user.avatar.url
+    if ctx:
+        user = ctx.guild.get_member(item_dict["user_id"])
+        if user.avatar:
+            user_avatar = user.avatar.url
+    embed.set_footer(
+        text=f"{user} • {footer_text} ",
+        icon_url=user_avatar,
+    )
 
     return embed, [file, author_icon, item_image]
 

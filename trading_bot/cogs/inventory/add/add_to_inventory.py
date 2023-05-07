@@ -3,6 +3,7 @@ from pathlib import Path
 from discord.ext import commands
 from collections import namedtuple
 from embed.embed_message import embed_text_message
+from datetime import datetime
 
 
 class AddToInventory:
@@ -30,7 +31,10 @@ class AddToInventory:
         Initializes the instance of the class.
         """
         if item_properties is not None:
-            self.Item = namedtuple("Item", (*item_properties, "price"))
+            self.Item = namedtuple(
+                "Item",
+                (*item_properties, "price", "user_id", "user_avatar", "date"),
+            )
         self.current_item_properties = item_properties
 
     def format_item_text(self, count, item) -> str:
@@ -55,8 +59,6 @@ class AddToInventory:
                 item = "iPhone"
             if count == 0 and "ipad" in item.lower():
                 item = "iPad"
-
-            print(f"{count}:{item}")
         return item
 
     def convert_message(self, discord_message):
@@ -88,7 +90,14 @@ class AddToInventory:
             if self.item_values[-1] is None:
                 self.item_values.pop()
 
-    def create_item_dict(self, id, item_values, guild=None) -> dict:
+    def create_item_dict(
+        self,
+        id,
+        item_values,
+        user_id,
+        user_avatar,
+        guild=None,
+    ) -> dict:
         """
         Generates a new unique ID for the item, assigns the values of
         make, model, part, color, description, and price to instance variables,
@@ -96,20 +105,16 @@ class AddToInventory:
         """
         self.item_values = item_values
         self.new_id = id
+        self.timestamp = datetime.now()
         self.__price_handler(self.item_values)
-        print(f"NEW_ID_CREATE_ITEM_DICT: {self.new_id}")
-        print(f"PRICE_CREATE_ITEM_DICT:{self.price}")
-        print([*self.item_values])
         try:
             item = self.Item(
-                *item_values,
-                self.price,
+                *item_values, self.price, user_id, user_avatar, self.timestamp
             )
             self.new_row = {"id": id, **item._asdict()}
             return self.new_row
         except TypeError:
             item_properties = guild["item_properties"]
-            print(item_properties)
             properties_are = (
                 f"{' '.join([f'`{item}`' for item in item_properties])}"
             )

@@ -57,8 +57,8 @@ class Pagination(discord.ui.View):
             item_id=(f"{self.guild_id}_{current_item_dict['id']}.png"),
             image_path=self.path_to_inv_images,
             item_dict=current_item_dict,
+            interaction=interaction,
         )
-        await interaction.re
         await interaction.response.edit_message(
             embed=embed[0],
             attachments=embed[1],
@@ -79,6 +79,7 @@ class Pagination(discord.ui.View):
             item_id=(f"{self.guild_id}_{current_item_dict['id']}.png"),
             image_path=self.path_to_inv_images,
             item_dict=current_item_dict,
+            interaction=interaction,
         )
 
         await interaction.response.edit_message(

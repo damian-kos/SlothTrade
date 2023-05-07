@@ -236,6 +236,25 @@ class MongoDb:
                 return True
         return False
 
+    def get_item(self, id: str, guild_id: int) -> dict:
+        """Returns a dictionary containing the item with the specified ID in the guild with the specified ID.
+        If the item is not found, returns `None`.
+
+        Args:
+            id (str): The ID of the item to retrieve.
+            guild_id (int): The ID of the guild to search for the item.
+
+        Returns:
+            Union[Dict[str, Any], None]: A dictionary containing the item with the specified ID,
+            or `None` if the item is not found.
+        """
+        found = self.guild_in_database(guild_id)
+        items = found["items"]
+        for item in items:
+            if item["id"] == id:
+                return item
+        return None
+
     def delete_all_items(self, guild_id):
         self.collection_name.update_one(
             {"_id": guild_id},
