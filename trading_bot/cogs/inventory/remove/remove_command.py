@@ -73,7 +73,6 @@ class Remove(commands.Cog):
             ctx.message.content
         )
         item_dict = self.db.get_item(id=item_id, guild_id=ctx.guild.id)
-
         if item_id == "everything":
             if not ctx.author.guild_permissions.manage_guild:
                 await ctx.send("You need to have `Manage Server` permission.")
@@ -93,33 +92,33 @@ class Remove(commands.Cog):
                 await ctx.send("✅ All items removed from database.")
                 await removed_everything_from_database(ctx=ctx, guild=guild)
                 return
-        else:
-            if not item_dict:
-                embed = embed_simple_message(
-                    msg_title=f"Item Not Found - ID: {item_id}",
-                    msg_desc="No item with such ID in database.",
-                    rgb_color=(255, 0, 0),
-                )  # red
-                await ctx.send(embed=embed)
-                return
-            if (
-                item_dict["user_id"] != ctx.author.id
-                and not ctx.author.guild_permissions.manage_guild
-            ):
-                await ctx.send(
-                    "You can't delete an item which wasn't listed by you."
-                )
+
+        if not item_dict:
+            embed = embed_simple_message(
+                msg_title=f"Item Not Found - ID: {item_id}",
+                msg_desc="No item with such ID in database.",
+                rgb_color=(255, 0, 0),
+            )  # red
+            await ctx.send(embed=embed)
             return
-        self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id)
-        self.remove_from_inventory.item_has_attachments(
-            guild_id=ctx.guild.id, item_id=item_id
-        )
-        embed = embed_simple_message(
-            msg_title=f"Item Removed - ID: {item_id}",
-            msg_desc="Successfuly removed item",
-            rgb_color=(102, 255, 51),
-        )  # green
-        await ctx.send(embed=embed)
+        if (
+            item_dict["user_id"] != ctx.author.id
+            and not ctx.author.guild_permissions.manage_guild
+        ):
+            await ctx.send(
+                "You can't delete an item which wasn't listed by you."
+            )
+            return
+        if self.db.delete_item(guild_id=ctx.guild.id, item_id=item_id):
+            self.remove_from_inventory.item_has_attachments(
+                guild_id=ctx.guild.id, item_id=item_id
+            )
+            embed = embed_simple_message(
+                msg_title=f"Item Removed - ID: {item_id}",
+                msg_desc="Successfuly removed item",
+                rgb_color=(102, 255, 51),
+            )  # green
+            await ctx.send(embed=embed)
 
 
 async def setup(bot):

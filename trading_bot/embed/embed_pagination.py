@@ -47,6 +47,8 @@ class Pagination(discord.ui.View):
     async def menu1(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        await interaction.response.defer()
+
         self.current_page -= 1
         if self.current_page == 0:
             button.disabled = True
@@ -59,7 +61,9 @@ class Pagination(discord.ui.View):
             item_dict=current_item_dict,
             interaction=interaction,
         )
-        await interaction.response.edit_message(
+        message_id = interaction.message.id
+        await interaction.followup.edit_message(
+            message_id=message_id,
             embed=embed[0],
             attachments=embed[1],
             view=self,
@@ -69,6 +73,7 @@ class Pagination(discord.ui.View):
     async def menu2(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        await interaction.response.defer()
         self.current_page += 1
         if self.current_page == self.pages - 1:
             button.disabled = True
@@ -82,7 +87,9 @@ class Pagination(discord.ui.View):
             interaction=interaction,
         )
 
-        await interaction.response.edit_message(
+        message_id = interaction.message.id
+        await interaction.followup.edit_message(
+            message_id=message_id,
             embed=embed[0],
             attachments=embed[1],
             view=self,

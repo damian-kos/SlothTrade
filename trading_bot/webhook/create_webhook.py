@@ -2,13 +2,14 @@ from .webhook import channel_set_message, guild_role_create_log
 from instance.pymongo_operations import MongoDb
 from discord import Embed, Color
 from datetime import datetime
+from pathlib import Path
 
 
 async def create_webhook_(
     ctx, channel_id, new_webhook_name, guild, channel_link
 ):
     db = MongoDb()
-
+    logo_path = Path(__file__).parent.parent / "embed"
     channel_for_web = ctx.guild.get_channel(channel_id)
     channel_being_set = ctx.message.content.split(" ")[1]
     webhooks = await ctx.guild.webhooks()
@@ -19,7 +20,7 @@ async def create_webhook_(
         "Trading Search": "search.png",
         "Trading Selling": "selling.png",
     }
-    with open(f"trading_bot\embed\{logos[new_webhook_name]}", "rb") as file:
+    with open(f"{logo_path}/{logos[new_webhook_name]}", "rb") as file:
         png_bytes = file.read()
     if new_webhook_name not in webhooks_names:
         new_webhook = await channel_for_web.create_webhook(

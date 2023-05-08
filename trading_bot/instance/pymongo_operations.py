@@ -397,7 +397,7 @@ class MongoDb:
         for item in items:
             item_in_db_as_string = self.__dict_to_string(
                 item_dicts=item, 
-                item_properites=item_properties
+                item_properties=item_properties
                 )
             similarity = self.__compute_similarity(
                 search_phrase=search_phrase,

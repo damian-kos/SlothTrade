@@ -77,7 +77,9 @@ class Search(commands.Cog):
 
             if len(items_dicts) > 1:
                 view = Pagination(
-                    guild_id=ctx.guild.id, found_items=items_dicts
+        
+                    guild_id=ctx.guild.id, 
+                    found_items=items_dicts
                 )
                 view.response = await ctx.send(
                     "I've found these items for you.",

@@ -76,9 +76,9 @@ def embed_message(
             key = key.capitalize()
             value = value
             embed.add_field(name=key, value=value, inline=True)
-
-    file = File("trading_bot\embed\logo.png", filename="thumbnail.png")
-    author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")
+    logo_path = Path(__file__).parent / "logo.png"
+    file = File(logo_path, filename="thumbnail.png")
+    author_icon = File(logo_path, filename="author_icon.png")
     item_image = File(f"{image_path}/{item_id}", filename="item_image.png")
 
     embed.set_thumbnail(url="attachment://thumbnail.png")
@@ -141,8 +141,8 @@ def embed_text_message(
                 value=value,
                 inline=True,
             )
-
-    author_icon = File("trading_bot\embed\logo.png", filename="author_icon.png")
+    logo_path = Path(__file__).parent / "logo.png"
+    author_icon = File(logo_path, filename="author_icon.png")
     embed.set_author(
         name="Trade Octopus",
         icon_url="attachment://author_icon.png",

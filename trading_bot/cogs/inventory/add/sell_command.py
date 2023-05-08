@@ -43,8 +43,10 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             )
 
             await send_new_listing(add_to_inv=add_to, interaction=interaction)
-            await interaction.response.send_message(
-                f"Listed successfully.",
+            await interaction.response.defer(thinking=True)
+
+            await interaction.followup.send(
+                content=f"Listed successfully.",
             )
 
         return sell
@@ -79,8 +81,9 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             )
 
             await send_new_listing(add_to_inv=add_to, interaction=interaction)
-            await interaction.response.send_message(
-                f"Listed successfully.",
+            await interaction.response.defer(thinking=True)
+            await interaction.followup.send(
+                content=f"Listed successfully.",
             )
 
         return sell
@@ -99,6 +102,8 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             image: discord.Attachment,
             price: Optional[str],
         ):
+            await interaction.response.defer(thinking=True)
+            
             add_to = AddToInventory(item_properties=[*dict_with_names.values()])
             if await has_permissions_to_sell(interaction=interaction) == False:
                 return
@@ -116,8 +121,10 @@ def create_sell_app_command(bot, dict_with_names, dict_with_descriptions):
             )
 
             await send_new_listing(add_to_inv=add_to, interaction=interaction)
-            await interaction.response.send_message(
-                f"Listed successfully.",
+
+            await interaction.followup.send(
+                content=f"Listed successfully.",
+            
             )
 
         return sell
