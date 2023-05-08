@@ -20,7 +20,7 @@ After bot will be invited it will send a message to first channel he has permiss
 
 From that point you can setup a bot with `/settings` command. This command will work only on server's system channel.
 
-###  Settings command
+##  Settings command
 - `/settings`
 This command will return avaiable settings options. 
 
@@ -51,6 +51,30 @@ Other will be send if setup `logging` option. This will be sending logs about ch
 
 - **Note:**
     This message is send by `Trading Logging` webhook. `Trading Listing` `Trading Search` `Trading Selling` will be created during setup as well.
+
+## Other commands
+- `/remove`
+    - `/remove 00017` 
+        - Accepts ID  `00001` and `99999`. Leading zeros are necessary. Each item listed on each server once posted will also have it's own unique ID. 
+    - `/remove everything`
+        - Accepts keyword `everything`. This can be activated only by server members with `Manage Server` permission. Confirmation message will be send first.
+ 
+- `/search`
+    - `/search very cool thing`
+        - Accepts any sentence.
+
+## Sell slash command
+This command is created by `/settings item_properties`, use this function to get detailed information about it's usage.
+- `/settings item_properties`
+    - `/settings item_properties - title:Title of a book? - year:Release year?
+        - This will create a item property with it's description. Both, property and description are necessary. It accepts up to **4** `property:description` pairs.
+        - `-` between pairs are necessary.
+        - **Note** `price` property doesn't need to be created because it will be always created.
+
+After this command will run your slash command will be activated. If you setup logging beforhand it will let you know once command would be activated.
+        
+     
+
 
 
 
