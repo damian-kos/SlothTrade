@@ -70,6 +70,8 @@ This command is created by `/settings item_properties`, use this function to get
         - This will create a item property with it's description. Both, property and description are necessary. It accepts up to **4** `property:description` pairs.
         - `-` between pairs are necessary.
         - **Note** `price` property doesn't need to be created because it will be always created.
+        - ![image](https://user-images.githubusercontent.com/106775028/236825732-640564cd-5b1f-4294-aa07-9887133986e8.png)
+
 
 After this command will run your slash command will be activated. If you setup logging beforhand it will let you know once command would be activated.
         
