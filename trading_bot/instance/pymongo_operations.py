@@ -437,5 +437,4 @@ class MongoDb:
             similarity_threshold=60,
             search_phrase=search,
         )
-        print(sorted_items)
         return sorted_items

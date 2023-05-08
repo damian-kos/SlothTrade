@@ -154,30 +154,6 @@ async def delete_webhook_(ctx, webhook_name_to_delete, guild):
             else:
                 return
 
-
-# async def channel_updated(guild):
-#     try:
-#         logging_webhook_url = guild["logging_webhook"]
-#     except KeyError:
-#         return
-#     if logging_webhook_url:
-#         embed = Embed(
-#             title=f"{webhook_name_to_delete} webhook removed",
-#             description=f"The {channel_to_remove} was removed",
-#             color=Color.from_rgb(88, 101, 242),
-#             timestamp=datetime.now(),
-#         )
-#         embed.set_footer(
-#             icon_url=ctx.author.avatar.url,
-#             text=f"{ctx.author}",
-#         )
-
-#         await guild_role_create_log(
-#             url=logging_webhook_url,
-#             embed_message=embed,
-#         )
-
-
 async def removed_everything_from_database(ctx, guild):
     logging_webhook_url = guild["logging_webhook"]
     if logging_webhook_url:

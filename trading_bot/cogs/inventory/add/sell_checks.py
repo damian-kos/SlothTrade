@@ -11,8 +11,9 @@ async def has_permissions_to_sell(interaction):
     sell_role = guild["can_sell"]
     if sell_role != "everyone":
         if sell_role not in [role.name for role in interaction.user.roles]:
-            await interaction.response.send_message(
-                f"You need to have `{sell_role}` role to sell items."
+            await interaction.followup.send(
+                content=f"You need to have `{sell_role}` role to sell items."
+            
             )
             return False
 
@@ -23,8 +24,8 @@ async def channel_check(interaction):
     sell_channel = guild["sell_channel"]
     if interaction.channel_id != sell_channel:
         channel = interaction.guild.get_channel(sell_channel)
-        await interaction.response.send_message(
-            f"You can sell only on `{channel.name}`"
+        await interaction.followup.send(
+            content=f"You can sell only on `{channel.name}`"
         )
         return False
 
@@ -50,7 +51,7 @@ async def inventory_add(add_to_inv, interaction, item_values):
     if not isinstance(new_item_dict, dict):
         # If new item can't be created it will create and embed
         # message instead
-        await interaction.response.send_message(
+        await interaction.response.send(
             new_item_dict[0],
             embed=new_item_dict[1],
             file=new_item_dict[2],
