@@ -28,15 +28,29 @@ This command will return avaiable settings options.
 We can use one of this listed options to get detailed info about the option. 
 Let's use `logging`
 
-#####  `/settings logging`
+#####  `/settings [option]`
 
 ![image](https://user-images.githubusercontent.com/106775028/236809449-382dc395-165d-4b13-9625-c6baadf26cd0.png)
 
 Last thing we can use with `/settings [option]` is a parameter hinted in previous message. We will use `general` as a channel's name.
 
-######  `/settings logging general`
+######  `/settings [option] [parameter]`
 We will get a confirmation prompt. After confirmation chosen setting will be updated.
 
 ![image](https://user-images.githubusercontent.com/106775028/236809963-ce96c23d-1527-4764-9926-cb3c876b8fce.png)
+
+After confirmation messages can be send:
+One will be always send on server's system channel.
+
+![image](https://user-images.githubusercontent.com/106775028/236810318-aff97e17-1f12-454d-b11d-b95c9c60c832.png)
+
+Other will be send if setup `logging` option. This will be sending logs about changes to options.
+
+![image](https://user-images.githubusercontent.com/106775028/236810494-9ac70d8f-8731-4d1d-a10f-9f6124d19413.png)
+
+- **Note:**
+    This message is send by `Trading Logging` webhook. `Trading Listing` `Trading Search` `Trading Selling` will be created during setup as well.
+
+
 
 
