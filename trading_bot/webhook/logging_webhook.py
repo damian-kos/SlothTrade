@@ -38,8 +38,6 @@ class Logging(commands.Cog):
                 )
                 self.bot.tree.add_command(new_command, guild=guild)
                 sync = await self.bot.tree.sync(guild=guild)
-                print(f"bot logged as {self.bot.user}")
-                print(f"synced {len(sync)} commands")
             except KeyError:
                 print("sell")
 

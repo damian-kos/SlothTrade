@@ -55,7 +55,6 @@ class Search(commands.Cog):
         search_query = self.search_in_inventory.convert_message(
             ctx.message.content
         )
-        print(search_query)
         search_results = self.db.levenshtein_search(
             guild_id=ctx.guild.id, search=search_query
         )

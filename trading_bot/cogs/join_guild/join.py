@@ -12,7 +12,7 @@ class Join(commands.Cog):
         """
         self.bot = bot
         self.db = MongoDb()
-        self.title = "Trade Octopus Bot has joined the server"
+        self.title = "Sloth Trade Bot has joined the server"
         self.description = (
             "Hi, I've been added to this server.\n"
             "Some things you should know:\n"

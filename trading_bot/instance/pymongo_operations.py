@@ -1,75 +1,46 @@
 from instance.pymongo_get_database import get_database
 from .levenshtein_algorithm import fuzz_test
-
+from typing import Union, Dict, Any, List
 
 class MongoDb:
+    """
+    A class that represents a connection to a MongoDB database and provides methods for interacting with it.
+
+    Attributes:
+        dbname (pymongo.database.Database): A connection to the MongoDB database.
+        collection_name (pymongo.collection.Collection): The name of the collection within the database.
+
+    Methods:
+        guild_in_database(guild_id: int) -> dict or None:
+            Searches for a guild with the given ID in the database.
+
+    """
+
     def __init__(self):
         """
-        A class for accessing a MongoDB database containing information
-        about guilds and their items.
-
-        Attributes:
-            dbname (pymongo.database.Database): The database to connect
-            to.
-            collection_name (pymongo.collection.Collection):
-            The collection within the database to interact with.
-
-        Methods:
-            guild_in_database(guild_id):
-                Returns the result of a MongoDB find_one query for
-                a guild with the given ID.
-
-            insert_guild(guild_id, guild_name, guild_system_channel):
-                Inserts a new guild with the given ID, name, and
-                system channel into the collection.
-
-            delete_guild(guild_id):
-                Deletes the guild with the given ID from the collection.
-
-            set_channel(guild_id, channel_id, channel_type=""):
-                Sets the system or voice channel ID of the guild with the
-                  given ID in the collection.
-
-            get_items_id(guild_id):
-                Returns the ID of the next item to be added to the guild
-                with the given ID.
-
-            add_item(guild_id, item):
-                Adds a new item to the guild with the given ID in the
-                collection.
-
-            delete_item(guild_id, item_id):
-                Deletes the item with the given ID from the guild with
-                the given ID in the collection.
-
-            __compute_similarity(search_phrase, db_item, models):
-                Computes the Levenshtein similarity between a search
-                phrase and an item in the database.
-
-            sort_results(items, similarity_threshold, search_phrase):
-                Sorts a list of items by Levenshtein similarity to
-                a search phrase and by model priority.
-
-            levenshtein_search(guild_id, search):
-                Searches for items within a guild using a Levenshtein
-                algorithm and returns them sorted by similarity to the search phrase.
-
-
+        Initializes a new instance of the MongoDb class and connects to 
+        the MongoDB database.
         """
         self.dbname = get_database()
         self.collection_name = self.dbname["guilds"]
 
-    def guild_in_database(self, guild_id: int):
+    def guild_in_database(self, guild_id: int) -> dict:
         """
-        Sets the guild attribute to the result of a MongoDB find_one
-        query for a guild with the given ID.
+        Searches for a guild with the given ID in the database.
 
         Args:
-            guild_id (int): ID of guild.
+            guild_id: The ID of the guild to search for.
 
         Returns:
-            The result of the query as a dictionary, or None if no guild
-            is found.
+            dict or None: 
+                A dictionary representing the guild if found, or None if 
+                    not found.
+
+        Examples:
+            >>> db = MongoDb()
+            >>> guild = db.guild_in_database(123456789)
+            >>> print(guild)
+            {'_id': 123456789, 'name': 'My Guild', 'members': 50}
         """
         self.guild = self.collection_name.find_one({"_id": guild_id})
         return self.guild
@@ -78,15 +49,21 @@ class MongoDb:
         self, guild_id: int, guild_name: str, guild_system_channel: int
     ):
         """
-        Inserts a new guild into the MongoDB.
+        Inserts a new guild into the database with the given ID, name, 
+        and system channel ID.
 
         Args:
-            guild_id (int): ID of guild.
-            guild_name (str): Name of guild.
-            guild_system_channel (int): ID of system channel.
+            guild_id: The ID of the guild to be inserted.
+            guild_name: The name of the guild to be inserted.
+            guild_system_channel: The ID of the system channel of the 
+                guild to be inserted.
 
         Returns:
-            None
+            None.
+
+        Examples:
+            >>> db = MongoDb()
+            >>> db.insert_guild(123456789, 'My Guild', 987654321)
         """
         guild_info = {
             "_id": guild_id,
@@ -97,29 +74,33 @@ class MongoDb:
 
     def delete_guild(self, guild_id: int):
         """
-        Deletes a guild from the MongoDB.
+        Deletes the guild with the given ID from the database.
 
         Args:
-            guild_id (int): ID of guild.
+            guild_id: The ID of the guild to be deleted.
 
         Returns:
-            None
+            None.
+
+        Examples:
+            >>> db = MongoDb()
+            >>> db.delete_guild(123456789)
         """
         guild = {
             "_id": guild_id,
         }
         self.collection_name.delete_one(guild)
 
-    def set_channel(self, guild_id, channel_id, channel_type=""):
-        """
-        Sets the channel attribute of a guild in the MongoDB.
+    def set_channel(self, guild_id: int, channel_id: str, channel_type=""):
+        """Sets the ID of the specified channel for the guild with the 
+        given ID.
 
         Args:
-            guild_id (int): ID of guild.
-            channel_id (int): ID of channel to set.
-            channel_type (str): Type of channel to set.
+            guild_id: The ID of the guild to be updated.
+            channel_id: The ID of the channel to set.
+            channel_type: The type of channel to set.
 
-        Returns:
+        Return:
             None
         """
         found = self.guild_in_database(guild_id)
@@ -129,7 +110,17 @@ class MongoDb:
                 {"$set": {f"{channel_type}": channel_id}},
             )
 
-    def delete_channel(self, guild_id, channel_type=""):
+    def delete_channel(self, guild_id: int, channel_type:str):
+        """Removes the channel assigned to guild with the given ID.
+        Removes webhook if present.
+
+        Args:
+            guild_id: The ID of the guild to be updated.
+            channel_type: The type of channel to set.
+
+        Return:
+            None
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
@@ -141,7 +132,19 @@ class MongoDb:
                 {"$unset": {f"{channel_type}_webhook": ""}},
             )
 
-    def webhook_url(self, guild_id, webhook, webhook_url):
+    def webhook_url(self, guild_id: int, webhook: str, webhook_url: str):
+        """Sets the webhook and its url of the specified channel for the 
+        guild with the given ID.
+
+        Args:
+            guild_id: The ID of the guild to be updated.
+            webhook: The webhooks name.
+            webhook_url: The discord webhooks url address.
+
+        Return:
+            None
+
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
@@ -149,7 +152,18 @@ class MongoDb:
                 {"$set": {f"{webhook}": webhook_url}},
             )
 
-    def define_item_properties(self, guild_id, item_properties_tuple):
+    def define_item_properties(self, guild_id:int, item_properties_tuple:tuple):
+        """Sets the properties of an item of the guild with the given ID.
+
+        Args:
+            guild_id: The ID of the guild to be updated.
+            item_properties_tuple: The properties of an item for the 
+                guild.
+
+        Return:
+            None
+
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
@@ -157,7 +171,22 @@ class MongoDb:
                 {"$set": {f"item_properties": item_properties_tuple}},
             )
 
-    def define_item_properties_descriptions(self, guild_id, descriptions_tuple):
+    def define_item_properties_descriptions(
+            self, 
+            guild_id:int, 
+            descriptions_tuple:tuple
+            ):
+        """Sets the descriptions of an item properties of the guild with 
+        the given ID.
+
+        Args:
+            guild_id: The ID of the guild to be updated.
+            descriptions_tuple: The properties of an item for the guild.
+
+        Return:
+            None
+
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
@@ -165,12 +194,33 @@ class MongoDb:
                 {"$set": {f"item_params_description": descriptions_tuple}},
             )
 
-    def get_item_properties(self, guild_id):
+    def get_item_properties(self, guild_id:int) -> list:
+        """
+        Retrieves the item properties of a guild from the database.
+
+        Args:
+            guild_id: The ID of the guild to retrieve the item 
+            properties from.
+
+        Returns:
+            list: A list containing the item properties of the specified guild.
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             return found["item_properties"]
 
-    def allow_role_to(self, guild_id, function: str, role: str):
+    def allow_role_to(self, guild_id:int, function: str, role: str):
+        """Allows a role of a guild to perform a specified function.
+
+        Args:
+            guild_id: The ID of the guild to be updated.
+            function: The function which role can perform.
+            role: The role which can perform a function.
+
+        Return:
+            None
+
+        """
         found = self.guild_in_database(guild_id)
         if found is not None:
             self.collection_name.update_one(
@@ -180,13 +230,20 @@ class MongoDb:
 
     def get_items_id(self):
         """
-        Gets the ID for the next item to be added to the MongoDB.
+        Generates a new ID for an item in the guild's database.
+
+        The ID is a string containing a five-digit number, starting with "00001" for the first item.
+        If there are no items in the database, the ID of the first item will be "00001".
 
         Args:
-            guild_id (int): ID of guild.
+            None.
 
         Returns:
-            int: The next item ID, or "1" if no items are found.
+            str: A five-digit string representing the ID of the next item to be added to the database.
+
+        Example:
+            If the guild's database contains two items with IDs "00001" and "00002", calling get_items_id()
+            will return "00003", which can be used as the ID of the next item to be added to the database.
         """
         found = self.guild
         if found is not None:
@@ -197,16 +254,17 @@ class MongoDb:
             except:
                 return "1"
 
-    def add_item(self, guild_id, item):
-        """
-        Adds an item to the MongoDB.
+    def add_item(self, guild_id:int, item:dict):
+        """Push an item dictionary into database.
 
         Args:
-            guild_id (int): ID of guild.
-            item (dict): The item to add.
+            guild_id: The ID of the guild to be updated.
+            item: The items dictionary. Dictionary is created with keys 
+                of item_properties.
 
-        Returns:
+        Return:
             None
+
         """
         found = self.guild
         if found is not None:
@@ -215,16 +273,24 @@ class MongoDb:
                 {"$push": {"items": item}},
             )
 
-    def delete_item(self, guild_id, item_id):
+    def delete_item(self, guild_id:int, item_id:str) -> bool:
         """
-        Deletes an item from the MongoDB.
+        Deletes an item with the specified ID from the guild's database.
+
+        If an item with the specified ID is found in the database, it is removed and the function returns True.
+        If no item with the specified ID is found in the database, the function returns False.
 
         Args:
-            guild_id (int): ID of guild.
-            item_id (int): ID of item to delete.
+            guild_id: The ID of the guild to delete the item from.
+            item_id: The ID of the item to delete.
 
         Returns:
-            None
+            bool: True if an item with the specified ID was found and deleted from the database, False otherwise.
+
+        Example:
+            If the guild's database contains an item with ID "00001", calling delete_item(guild_id=1234, item_id="00001")
+            will remove the item from the database and return True. If no such item exists in the database, the function
+            will return False.
         """
         found = self.guild
         for item in found["items"]:
@@ -236,13 +302,13 @@ class MongoDb:
                 return True
         return False
 
-    def get_item(self, id: str, guild_id: int) -> dict:
+    def get_item(self, id: str, guild_id: int) ->  Union[Dict[str, Any], None]:
         """Returns a dictionary containing the item with the specified ID in the guild with the specified ID.
         If the item is not found, returns `None`.
 
         Args:
-            id (str): The ID of the item to retrieve.
-            guild_id (int): The ID of the guild to search for the item.
+            id: The ID of the item to retrieve.
+            guild_id: The ID of the guild to search for the item.
 
         Returns:
             Union[Dict[str, Any], None]: A dictionary containing the item with the specified ID,
@@ -255,44 +321,94 @@ class MongoDb:
                 return item
         return None
 
-    def delete_all_items(self, guild_id):
+    def delete_all_items(self, guild_id:int):
+        """
+        Deletes all items from the guild's database.
+
+        Args:
+            guild_id: The ID of the guild to delete the item from.
+        
+        Returns:
+            None
+        """
         self.collection_name.update_one(
             {"_id": guild_id},
             {"$unset": {"items": ""}},
         )
 
-    def __dict_to_string(self, dictionary, item_properties):
+    def __dict_to_string(self, item_dicts:dict, item_properties:list) -> str:
+        """Converts a item_dicts to a string with the format like
+                'make model part color'
+
+        Args:
+            item_dicts: Dictionary containing items.
+            item_properties: List contating item_properites defined for 
+                a guild.
+
+        Returns:
+            str: String of count words equals of length of item 
+                propererties. If multiple words are under on parameter of
+                an item. It will include all of them.
+            
         """
-        Converts a dictionary to a string with the format 'make model part color description price'
-        """
-        return " ".join(
+
+        converted_string = " ".join(
             [
                 f"{value.lower()}"
-                for key, value in dictionary.items()
+                for key, value in item_dicts.items()
                 if key in item_properties
             ]
         )
 
+        return converted_string
+    
     def __compute_similarity(self, search_phrase, db_item):
         similarity = fuzz_test(query=search_phrase, db_item=db_item)
         return similarity
 
     def __sort_results(
-        self, items, similarity_threshold, search_phrase, item_properties
+        self, 
+        items:List[Dict[str, Any]], 
+        similarity_threshold:int, 
+        search_phrase:str, 
+        item_properties:list
     ):
+        """
+        Sorts a list of items based on their similarity to a search phrase.
+
+        Args:
+            items: A list of dictionaries representing items to search.
+            similarity_threshold: The minimum similarity score required 
+                to include an item in the results.
+            search_phrase: The phrase to search for within the item 
+                names.
+            item_properties: A list of strings indicating the item 
+                properties to use in the search.
+
+        Returns:
+            Union[str, List[Dict[str, Any]]]: If no items meet the 
+                similarity threshold, returns the string "No items".
+                Otherwise, returns a list of dictionaries containing the 
+                reverse sorted search results.
+            
+        """
+
         leve_sorted_items = {}
         for item in items:
-            item_in_db_as_string = self.__dict_to_string(item, item_properties)
+            item_in_db_as_string = self.__dict_to_string(
+                item_dicts=item, 
+                item_properites=item_properties
+                )
             similarity = self.__compute_similarity(
                 search_phrase=search_phrase,
                 db_item=item_in_db_as_string,
             )
             leve_sorted_items.setdefault(similarity, []).append(item)
         sorted_items = sorted(
-            (k, v)
+           ( (k, v)
             for k, v in leve_sorted_items.items()
-            if k >= similarity_threshold
-        )
+            if k >= similarity_threshold)
+        , reverse=True)
         if len(sorted_items) == 0:
             return "No items"
         unpacked_list = [
@@ -300,9 +416,9 @@ class MongoDb:
         ]
         return unpacked_list
 
-    def levenshtein_search(self, guild_id, search):
+    def levenshtein_search(self, guild_id:int, search:str) -> Union[str, dict] :
         """
-        Searches for an items within users query and sorts them. Prioritizes items included in .txt file.
+        Searches for an items within users query and sorts them.
 
         Args:
             guild_id (int): ID of guild.
@@ -311,14 +427,15 @@ class MongoDb:
             str: If no results were find.
             dict: If there are items to show.
         """
-        items = self.collection_name.find({"_id": guild_id})
+        guild = self.collection_name.find({"_id": guild_id})
 
-        if not items:
+        if not guild:
             return "No items"
         sorted_items = self.__sort_results(
-            items=items[0]["items"],
-            item_properties=items[0]["item_properties"],
+            items=guild[0]["items"],
+            item_properties=guild[0]["item_properties"],
             similarity_threshold=60,
             search_phrase=search,
         )
+        print(sorted_items)
         return sorted_items

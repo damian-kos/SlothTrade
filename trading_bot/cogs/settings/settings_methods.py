@@ -134,7 +134,7 @@ async def disable_webhook(channel, ctx, channels_info, db, guild):
 async def create_or_edit_webhook(
     channel, ctx, channel_id, channels_info, channel_link, db, guild
 ):
-    print(channels_info[channel])
+
     if len(channels_info[channel]) == 3:
         await create_webhook_(
             ctx=ctx,
