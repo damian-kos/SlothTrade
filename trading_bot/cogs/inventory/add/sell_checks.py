@@ -36,7 +36,10 @@ async def inventory_add(add_to_inv, interaction, item_values):
     new_item_id = db.get_items_id()
     new_item_id = str(new_item_id).zfill(5)
     user_id = interaction.user.id
-    user_avatar = interaction.user.avatar.url
+    if interaction.user.avatar is None:
+        user_avatar = "https://cdn.discordapp.com/embed/avatars/0.png"
+    else:
+        user_avatar = interaction.user.avatar.url
     new_item_dict = add_to.create_item_dict(
         id=new_item_id,
         guild=guild,

@@ -27,10 +27,11 @@ class Settings(commands.Cog):
             await ctx.send(f"This command works only on {system_channel_href}.")
             return
         settings_options = {
-            "sell_channel": channel_settings,
-            "search_channel": channel_settings,
             "listing_channel": channel_settings,
             "logging": channel_settings,
+            "remove_channel": channel_settings,
+            "sell_channel": channel_settings,
+            "search_channel": channel_settings,
             "item_properties": define_item_properties,
             "can_sell": role_can,
             "can_remove": role_can,
@@ -41,9 +42,10 @@ class Settings(commands.Cog):
             embed_fields = {
                 "🗂️Item Properties": "`/settings item_properties`",
                 "🗣️Listing Channel": "`/settings listing_channel`",
+                "📡Logging Channel": "`/settings logging`",
                 "💰Sell Channel": "`/settings sell_channel`",
                 "👀Search Channel": "`/settings search_channel`",
-                "📡Logging Channel": "`/settings logging`",
+                "🗑️Remove Channel": "`/settings remove_channel`",
                 "📤Can Remove": "`/settings can_remove`",
                 "🔍Can Search": "`/settings can_search`",
                 "📥Can Sell": "`/settings can_sell`",

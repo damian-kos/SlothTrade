@@ -1,6 +1,11 @@
 from embed.embed_message import embed_settings_message
 from embed.embed_confirmation import Confirmation
-from webhook.create_webhook import create_webhook_, delete_webhook_
+from webhook.create_webhook import (
+    create_webhook_,
+    delete_webhook_,
+    channel_updated,
+    channel_removed,
+)
 from webhook.webhook import guild_role_create_log
 from ..inventory.add.sell_command import create_sell_app_command
 from discord import Embed, Color
@@ -8,11 +13,20 @@ from datetime import datetime
 
 
 async def channel_settings_modify_message(channel, db, ctx, test_view=None):
+    guild = db.guild_in_database(guild_id=ctx.guild.id)
+    system_channel = guild["guild_system_channel"]
+    system_channel_id = (
+        f"https://discord.com/channels/{ctx.guild.id}/{system_channel}"
+    )
     channels_info = {
         "listing_channel": [
             "Listing Channel",
             "new listings are sent.",
             "Trading Listing",
+        ],
+        "remove_channel": [
+            "Remove Channel",
+            f"remove command works. This command will also work on {system_channel_id}.",
         ],
         "search_channel": [
             "Search Channel",
@@ -30,7 +44,6 @@ async def channel_settings_modify_message(channel, db, ctx, test_view=None):
             "Trading Logging",
         ],
     }
-    guild = db.guild_in_database(guild_id=ctx.guild.id)
 
     if test_view is not None:
         last_item_in_message = ctx.message.content.split(" ")[-1]
@@ -99,11 +112,18 @@ async def channel_settings_modify_message(channel, db, ctx, test_view=None):
 
 
 async def disable_webhook(channel, ctx, channels_info, db, guild):
-    await delete_webhook_(
-        ctx=ctx,
-        webhook_name_to_delete=channels_info[channel][2],
-        guild=guild,
-    )
+    if len(channels_info[channel]) == 3:
+        await delete_webhook_(
+            ctx=ctx,
+            webhook_name_to_delete=channels_info[channel][2],
+            guild=guild,
+        )
+    else:
+        await channel_removed(
+            guild=guild,
+            channel=channels_info[channel][0],
+            ctx=ctx,
+        )
     db.delete_channel(
         guild_id=ctx.guild.id,
         channel_type=channel,
@@ -114,13 +134,23 @@ async def disable_webhook(channel, ctx, channels_info, db, guild):
 async def create_or_edit_webhook(
     channel, ctx, channel_id, channels_info, channel_link, db, guild
 ):
-    await create_webhook_(
-        ctx=ctx,
-        channel_id=channel_id,
-        new_webhook_name=channels_info[channel][2],
-        guild=guild,
-        channel_link=channel_link,
-    )
+    print(channels_info[channel])
+    if len(channels_info[channel]) == 3:
+        await create_webhook_(
+            ctx=ctx,
+            channel_id=channel_id,
+            new_webhook_name=channels_info[channel][2],
+            guild=guild,
+            channel_link=channel_link,
+        )
+    else:
+        await channel_updated(
+            guild=guild,
+            channel=channels_info[channel][0],
+            channel_link=channel_link,
+            ctx=ctx,
+        )
+
     await ctx.send(f"✅ {channel_link} will now be used as the {channel}.")
     db.set_channel(
         guild_id=ctx.guild.id,
@@ -370,12 +400,19 @@ async def role_can(ctx, db):
                 function=function,
                 role=role_assigned,
             )
-            await ctx.send(f"✅ The {role.mention} from now {function}")
+            if role_assigned:
+                await ctx.send(f"✅ The {role_assigned} from now {function}")
+                description = f"{role_assigned} {function} from now on."
+            else:
+                await ctx.send(f"✅ The {role.mention} from now {function}")
+                description = (
+                    f"{role.mention} is changed to a role which {function}."
+                )
             try:
                 logging_webhook_url = guild["logging_webhook"]
                 embed = Embed(
                     title=f"{function.capitalize()} role updated",
-                    description=f"{role.mention} is changed to a role which {function}.",
+                    description=description,
                     color=Color.from_rgb(88, 101, 242),
                     timestamp=datetime.now(),
                 )

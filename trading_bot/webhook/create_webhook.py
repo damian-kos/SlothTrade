@@ -8,6 +8,7 @@ async def create_webhook_(
     ctx, channel_id, new_webhook_name, guild, channel_link
 ):
     db = MongoDb()
+
     channel_for_web = ctx.guild.get_channel(channel_id)
     channel_being_set = ctx.message.content.split(" ")[1]
     webhooks = await ctx.guild.webhooks()
@@ -46,10 +47,7 @@ async def create_webhook_(
     if new_webhook_name == "Trading Logging":
         logging_webhook_url = new_webhook.url
     else:
-        try:
-            logging_webhook_url = guild["logging_webhook"]
-        except KeyError:
-            return
+        logging_webhook_url = logging_webhook_exists(guild)
     if logging_webhook_url:
         embed = Embed(
             title=f"{new_webhook_name} webhook created",
@@ -66,6 +64,62 @@ async def create_webhook_(
             url=logging_webhook_url,
             embed_message=embed,
         )
+    else:
+        return
+
+
+def logging_webhook_exists(guild):
+    try:
+        logging_webhook_url = guild["logging_webhook"]
+    except KeyError:
+        return None
+    if logging_webhook_url:
+        return logging_webhook_url
+
+
+async def channel_updated(guild, channel, channel_link, ctx):
+    channel_being_set = ctx.message.content.split(" ")[1]
+    logging_webhook_url = logging_webhook_exists(guild)
+    if logging_webhook_url:
+        embed = Embed(
+            title=f"{channel} is now updated",
+            description=f"{channel_link} will be used as the {channel_being_set}",
+            color=Color.from_rgb(88, 101, 242),
+            timestamp=datetime.now(),
+        )
+        embed.set_footer(
+            icon_url=ctx.author.avatar.url,
+            text=f"{ctx.author}",
+        )
+
+        await guild_role_create_log(
+            url=logging_webhook_url,
+            embed_message=embed,
+        )
+    else:
+        return
+
+
+async def channel_removed(guild, channel, ctx):
+    logging_webhook_url = logging_webhook_exists(guild)
+    if logging_webhook_url:
+        embed = Embed(
+            title=f"{channel} is now removed",
+            description=f"{channel} is now not active.",
+            color=Color.from_rgb(88, 101, 242),
+            timestamp=datetime.now(),
+        )
+        embed.set_footer(
+            icon_url=ctx.author.avatar.url,
+            text=f"{ctx.author}",
+        )
+
+        await guild_role_create_log(
+            url=logging_webhook_url,
+            embed_message=embed,
+        )
+    else:
+        return
 
 
 async def delete_webhook_(ctx, webhook_name_to_delete, guild):
@@ -79,10 +133,7 @@ async def delete_webhook_(ctx, webhook_name_to_delete, guild):
         webhook_to_delete = webhooks[webhook_index]
         await webhook_to_delete.delete()
         if webhook_name_to_delete != "Trading Logging":
-            try:
-                logging_webhook_url = guild["logging_webhook"]
-            except KeyError:
-                return
+            logging_webhook_url = logging_webhook_exists(guild)
             if logging_webhook_url:
                 embed = Embed(
                     title=f"{webhook_name_to_delete} webhook removed",
@@ -99,6 +150,31 @@ async def delete_webhook_(ctx, webhook_name_to_delete, guild):
                     url=logging_webhook_url,
                     embed_message=embed,
                 )
+            else:
+                return
+
+
+# async def channel_updated(guild):
+#     try:
+#         logging_webhook_url = guild["logging_webhook"]
+#     except KeyError:
+#         return
+#     if logging_webhook_url:
+#         embed = Embed(
+#             title=f"{webhook_name_to_delete} webhook removed",
+#             description=f"The {channel_to_remove} was removed",
+#             color=Color.from_rgb(88, 101, 242),
+#             timestamp=datetime.now(),
+#         )
+#         embed.set_footer(
+#             icon_url=ctx.author.avatar.url,
+#             text=f"{ctx.author}",
+#         )
+
+#         await guild_role_create_log(
+#             url=logging_webhook_url,
+#             embed_message=embed,
+#         )
 
 
 async def removed_everything_from_database(ctx, guild):

@@ -62,7 +62,7 @@ def embed_message(
 
         embed = Embed(
             title=item_title.capitalize(),
-            description=item_subtitle.capitalize(),
+            description=item_subtitle,
             color=Color.green(),
             timestamp=item_dict["date"],
         )
@@ -70,9 +70,11 @@ def embed_message(
         for key, value in list(item_dict.items())[2:]:
             if key == "price" and value == "":
                 break
+            if key in ["user_id", "user_avatar", "date"]:
+                break
 
             key = key.capitalize()
-            value = value.capitalize()
+            value = value
             embed.add_field(name=key, value=value, inline=True)
 
     file = File("trading_bot\embed\logo.png", filename="thumbnail.png")
@@ -87,6 +89,8 @@ def embed_message(
     )
     embed.set_image(url="attachment://item_image.png")
     footer_text = item_id.replace(".png", "").split("_")[1]
+    user_avatar = "https://cdn.discordapp.com/embed/avatars/0.png"
+
     if interaction:
         user = interaction.guild.get_member(item_dict["user_id"])
         if user.avatar:
