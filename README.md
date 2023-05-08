@@ -66,7 +66,7 @@ Other will be send if setup `logging` option. This will be sending logs about ch
 ## Sell slash command
 This command is created by `/settings item_properties`, use this function to get detailed information about it's usage.
 - `/settings item_properties`
-    - `/settings item_properties - title:Title of a book? - year:Release year?
+    - `/settings item_properties - title:Title of a book? - year:Release year?`
         - This will create a item property with it's description. Both, property and description are necessary. It accepts up to **4** `property:description` pairs.
         - `-` between pairs are necessary.
         - **Note** `price` property doesn't need to be created because it will be always created.
