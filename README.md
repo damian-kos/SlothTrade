@@ -2,6 +2,8 @@
 
 Sloth Trade is a discord bot that uses [Rapptz's discord.py](https://github.com/Rapptz/discord.py). It allows to create your own item listing system where you and your server users can list items to sell or offer.
 
+[Invite me!](https://discord.com/api/oauth2/authorize?client_id=1075488690291363931&permissions=3087068272&scope=bot)
+
 ## Features
 
 - Custom item properies. 
